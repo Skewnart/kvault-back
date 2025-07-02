@@ -1,0 +1,51 @@
+name: 🚀 Déploiement manuel Back
+# + Front
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environnement de déploiement"
+        required: true
+        default: "staging"
+        type: choice
+        options:
+          - staging
+          - production
+      back_ref:
+        description: "Tag ou commit du backend"
+        required: true
+      # front_ref:
+      #   description: "Tag ou commit du frontend"
+      #   required: false
+
+jobs:
+  inputs_validation:
+    name: Validation des inputs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validation
+        run: |
+          echo "Vérification qu'au moins un tag / commit est renseigné"
+          echo "${{ github.event.inputs.back_ref }}" | grep -P '^.+$'
+
+  build:
+    name: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+      - name: build
+        run: cargo build --verbose
+
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+      - name: test
+        run: cargo test --verbose
