@@ -7,30 +7,30 @@ on:
       environment:
         description: "Environnement de déploiement"
         required: true
-        default: "staging"
+        default: "STAGING"
         type: choice
         options:
-          - staging
-          - production
+          - STAGING
+          - PRODUCTION
       back_ref:
         description: "Tag ou commit du backend"
-        required: true
+        required: false
       # front_ref:
       #   description: "Tag ou commit du frontend"
       #   required: false
 
 jobs:
   inputs_validation:
-    name: Validation des inputs
+    name: validation des inputs
     runs-on: ubuntu-latest
     steps:
-      - name: Validation
+      - name: validation
         run: |
           echo "Vérification qu'au moins un tag / commit est renseigné"
-          echo "${{ github.event.inputs.back_ref }}" | grep -P '^.+$'
+          echo "${{ inputs.back_ref }}" | grep -P '^.+$'
 
-  build:
-    name: build
+  build_test:
+    name: build & tests
     runs-on: ubuntu-latest
 
     steps:
@@ -38,14 +38,100 @@ jobs:
         uses: actions/checkout@v4
       - name: build
         run: cargo build --verbose
-
-  test:
-    name: test
-    runs-on: ubuntu-latest
-    needs: build
-
-    steps:
-      - name: checkout
-        uses: actions/checkout@v4
       - name: test
         run: cargo test --verbose
+
+  deploy:
+    name: déploiement
+    runs-on: ubuntu-latest
+    env:
+      BACK_REPO: git@github.com:skewnart/passmanager-back.git
+      # FRONT_REPO: git@github.com:skewnart/passmanager-front.git
+
+    steps:
+      - name: chargement des secrets
+#        id: load-secrets
+        run: |
+          echo "SSH_USER=${{ secrets['SSH_USER'] }}" >> $GITHUB_ENV
+          echo "SSH_HOST=${{ secrets['SSH_HOST'] }}" >> $GITHUB_ENV
+          echo "SSH_PORT=${{ secrets['SSH_PORT'] }}" >> $GITHUB_ENV
+          echo "SSH_KEY=${{ secrets['SSH_PK'] }}" >> $GITHUB_ENV
+          echo "DEPLOY_BACK=${{ secrets[format('{0}_BACKEND_PATH', inputs.environment)] }}" >> $GITHUB_ENV
+          echo "DEPLOY_FRONT=${{ secrets[format('{0}_FRONTEND_PATH', inputs.environment)] }}" >> $GITHUB_ENV
+
+      - name: configuration clé SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H $SSH_HOST >> ~/.ssh/known_hosts
+
+      - name: clonage & build backend
+        run: |
+          git clone --depth 1 --branch ${{ inputs.back_ref }} $BACK_REPO back
+          cd back
+          cargo build --release
+          cd ..
+          tar czf back.tar.gz -C back/target/release .
+
+      # - name: 📦 Cloner et builder le frontend Svelte
+      #   run: |
+      #     git clone --depth 1 --branch ${{ inputs.front_ref }} $FRONT_REPO front
+      #     cd front
+      #     npm install
+      #     npm run build
+      #     cd ..
+      #     tar czf front.tar.gz -C front/build .
+
+      - name: déploiement backend
+        run: |
+          ssh $SSH_USER@$SSH_HOST -p $SSH_PORT"
+            set -e
+            echo 'Backup back'
+            rm -rf $DEPLOY_BACK.bak
+            cp -r $DEPLOY_BACK $DEPLOY_BACK.bak || true
+            rm -rf $DEPLOY_BACK
+            mkdir -p $DEPLOY_BACK
+          "
+          scp -P $SSH_PORT back.tar.gz $SSH_USER@$SSH_HOST:/tmp/back.tar.gz
+          ssh $SSH_USER@$SSH_HOST -p $SSH_PORT "
+            tar xzf /tmp/back.tar.gz -C $DEPLOY_BACK
+            sudo ${{ secrets[format('{0}_RESTART_BACKEND_CMD', inputs.environment)] }}
+          "
+
+      # - name: 🚀 Déployer frontend
+      #   id: deploy_front
+      #   continue-on-error: true
+      #   run: |
+      #     ssh $SSH_USER@$SSH_HOST -p $SSH_PORT "
+      #       set -e
+      #       echo '🧩 Backup front'
+      #       rm -rf $DEPLOY_FRONT.bak
+      #       cp -r $DEPLOY_FRONT $DEPLOY_FRONT.bak || true
+      #       rm -rf $DEPLOY_FRONT
+      #       mkdir -p $DEPLOY_FRONT
+      #     "
+      #     scp -P $SSH_PORT front.tar.gz $SSH_USER@$SSH_HOST:/tmp/front.tar.gz
+      #     ssh $SSH_USER@$SSH_HOST -p $SSH_PORT "
+      #       tar xzf /tmp/front.tar.gz -C $DEPLOY_FRONT
+      #       sudo systemctl restart myapp-front-${{ inputs.environment }}
+      #     "
+
+      # - name: 🛑 Rollback backend si frontend échoue
+      #   if: steps.deploy_front.outcome == 'failure'
+      #   run: |
+      #     echo "❌ Le frontend a échoué. Restauration du backend..."
+      #     ssh $SSH_USER@$SSH_HOST -p $SSH_PORT "
+      #       rm -rf $DEPLOY_BACK
+      #       mv $DEPLOY_BACK.bak $DEPLOY_BACK
+      #       sudo systemctl restart myapp-back-${{ inputs.environment }}
+      #     "
+      #     exit 1
+
+      - name: 🧹 Nettoyage des backups (si succès)
+        # if: steps.deploy_front.outcome == 'success'
+        run: |
+          echo "✅ Déploiement réussi. Suppression des backups..."
+          ssh $SSH_USER@$SSH_HOST -p $SSH_PORT "
+            rm -rf $DEPLOY_BACK.bak
+          "
