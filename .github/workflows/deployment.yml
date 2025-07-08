@@ -89,7 +89,7 @@ jobs:
 
       - name: Déploiement backend
         run: |
-          ssh $SSH_USER@$SSH_HOST -p $SSH_PORT"
+          ssh $SSH_USER@$SSH_HOST -p $SSH_PORT "
             set -e
             echo 'Backup back'
             rm -rf $DEPLOY_BACK.bak
