@@ -52,7 +52,6 @@ jobs:
       SSH_PORT: ${{ secrets.SSH_PORT }}
       DEPLOY_BACK: ${{ secrets[format('{0}_BACKEND_PATH', inputs.environment)] }}
       DEPLOY_FRONT: ${{ secrets[format('{0}_FRONTEND_PATH', inputs.environment)] }}
-      SSH_KEY: ${{ secrets['SSH_PK'] }}
 
     steps:
       - name: Chargement des secrets
@@ -63,12 +62,11 @@ jobs:
           echo "SSH_PORT=$SSH_PORT" >> $GITHUB_ENV
           echo "DEPLOY_BACK=$DEPLOY_BACK" >> $GITHUB_ENV
           echo "DEPLOY_FRONT=$DEPLOY_FRONT" >> $GITHUB_ENV
-          echo "SSH_KEY=$SSH_KEY" >> GITHUB_ENV
 
       - name: Configuration clé SSH
         run: |
           mkdir -p ~/.ssh
-          echo "$SSH_KEY" > ~/.ssh/id_rsa
+          echo "${{ secrets['SSH_PK'] }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -p $SSH_PORT -H $SSH_HOST >> ~/.ssh/known_hosts
 
@@ -95,8 +93,7 @@ jobs:
             set -e
             echo 'Backup back'
             rm -rf $DEPLOY_BACK.bak
-            cp -r $DEPLOY_BACK $DEPLOY_BACK.bak || true
-            rm -rf $DEPLOY_BACK
+            mv $DEPLOY_BACK $DEPLOY_BACK.bak
             mkdir -p $DEPLOY_BACK
           "
           scp -P $SSH_PORT back.tar.gz $SSH_USER@$SSH_HOST:/tmp/back.tar.gz
