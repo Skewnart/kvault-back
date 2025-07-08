@@ -70,13 +70,13 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -p $SSH_PORT -H $SSH_HOST >> ~/.ssh/known_hosts
 
-      - name: Clonage & build backend
-        run: |
-          git clone --depth 1 --branch ${{ inputs.back_ref }} $BACK_REPO back
-          cd back
-          cargo build --release
-          cd ..
-          tar czf back.tar.gz -C back/target/release .
+      # - name: Clonage & build backend
+      #   run: |
+      #     git clone --depth 1 --branch ${{ inputs.back_ref }} $BACK_REPO back
+      #     cd back
+      #     cargo build --release
+      #     cd ..
+      #     tar czf back.tar.gz -C back/target/release .
 
       # ! - name: 📦 Cloner et builder le frontend Svelte
       # !  run: |
@@ -87,20 +87,26 @@ jobs:
       # !    cd ..
       # !    tar czf front.tar.gz -C front/build .
 
-      - name: Déploiement backend
+      - name: Tests SSH
         run: |
           ssh $SSH_USER@$SSH_HOST -p $SSH_PORT "
-            set -e
-            echo 'Backup back'
-            rm -rf $DEPLOY_BACK.bak
-            mv $DEPLOY_BACK $DEPLOY_BACK.bak
-            mkdir -p $DEPLOY_BACK
+            echo 'TEST'
           "
-          scp -P $SSH_PORT back.tar.gz $SSH_USER@$SSH_HOST:/tmp/back.tar.gz
-          ssh $SSH_USER@$SSH_HOST -p $SSH_PORT "
-            tar xzf /tmp/back.tar.gz -C $DEPLOY_BACK
-            sudo ${{ secrets[format('{0}_RESTART_BACKEND_CMD', inputs.environment)] }}
-          "
+
+      # - name: Déploiement backend
+      #   run: |
+      #     ssh $SSH_USER@$SSH_HOST -p $SSH_PORT "
+      #       set -e
+      #       echo 'Backup back'
+      #       rm -rf $DEPLOY_BACK.bak
+      #       mv $DEPLOY_BACK $DEPLOY_BACK.bak
+      #       mkdir -p $DEPLOY_BACK
+      #     "
+      #     scp -P $SSH_PORT back.tar.gz $SSH_USER@$SSH_HOST:/tmp/back.tar.gz
+      #     ssh $SSH_USER@$SSH_HOST -p $SSH_PORT "
+      #       tar xzf /tmp/back.tar.gz -C $DEPLOY_BACK
+      #       sudo ${{ secrets[format('{0}_RESTART_BACKEND_CMD', inputs.environment)] }}
+      #     "
 
       # !- name: 🚀 Déployer frontend
       # !  id: deploy_front
