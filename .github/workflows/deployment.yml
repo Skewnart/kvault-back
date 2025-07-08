@@ -80,9 +80,9 @@ jobs:
         run: |
           git clone --depth 1 --branch ${{ inputs.back_ref }} $BACK_REPO back
           cd back
-          cargo build --release
+          cargo build --release --target aarch64-unknown-linux-gnu
           cd ..
-          tar czf back.tar.gz -C back/target/release .
+          tar czf back.tar.gz -C back/target/aarch64-unknown-linux-gnu/release .
 
       # ! - name: 📦 Cloner et builder le frontend Svelte
       # !  run: |
