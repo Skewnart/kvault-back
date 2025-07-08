@@ -45,7 +45,7 @@ jobs:
     name: Déploiement
     runs-on: ubuntu-latest
     env:
-      BACK_REPO: git@github.com:skewnart/passmanager-back.git
+      BACK_REPO: https://github.com/Skewnart/passmanager-back.git
       # ! FRONT_REPO: git@github.com:skewnart/passmanager-front.git
       SSH_USER: ${{ secrets.SSH_USER }}
       SSH_HOST: ${{ secrets.SSH_HOST }}
