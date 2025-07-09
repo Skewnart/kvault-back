@@ -52,6 +52,7 @@ jobs:
       SSH_PORT: ${{ secrets.SSH_PORT }}
       DEPLOY_BACK: ${{ secrets[format('{0}_BACKEND_PATH', inputs.environment)] }}
       DEPLOY_FRONT: ${{ secrets[format('{0}_FRONTEND_PATH', inputs.environment)] }}
+      BUILD_TARGET: aarch64-unknown-linux-gnu
 
     steps:
       - name: Chargement des secrets
@@ -76,17 +77,18 @@ jobs:
             IdentityFile ~/.ssh/id_rsa_github" > ~/.ssh/config
           ssh-keyscan -p $SSH_PORT -H $SSH_HOST >> ~/.ssh/known_hosts
 
-      - name: Mise à jour Cargo
+      - name: Configuration build
         run: |
-          rustup target add aarch64-unknown-linux-gnu
+          rustup target add $BUILD_TARGET
+          cargo install cross --git https://github.com/cross-rs/cross
 
       - name: Clonage & build backend
         run: |
           git clone --depth 1 --branch ${{ inputs.back_ref }} $BACK_REPO back
           cd back
-          cargo build --release --target aarch64-unknown-linux-gnu
+          cross build --release --target=$BUILD_TARGET
           cd ..
-          tar czf back.tar.gz -C back/target/aarch64-unknown-linux-gnu/release .
+          tar czf back.tar.gz -C back/target/$BUILD_TARGET/release .
 
       # ! - name: 📦 Cloner et builder le frontend Svelte
       # !  run: |
