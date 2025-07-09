@@ -76,6 +76,10 @@ jobs:
             IdentityFile ~/.ssh/id_rsa_github" > ~/.ssh/config
           ssh-keyscan -p $SSH_PORT -H $SSH_HOST >> ~/.ssh/known_hosts
 
+      - name: Mise à jour Cargo
+        run: |
+          rustup target add aarch64-unknown-linux-gnu
+
       - name: Clonage & build backend
         run: |
           git clone --depth 1 --branch ${{ inputs.back_ref }} $BACK_REPO back
