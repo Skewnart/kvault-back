@@ -26,7 +26,7 @@ jobs:
     steps:
       - name: Validation
         run: |
-          echo "Vérification qu'au moins un tag / commit est renseigné"
+          echo "Vérification qu'au moins un tag / commit / branche est renseigné"
           echo "${{ inputs.back_ref }}" | grep -P '^.+$'
 
   # build_test:
@@ -45,18 +45,16 @@ jobs:
     name: Déploiement
     runs-on: ubuntu-latest
     env:
-      BACK_REPO: git@github.com:skewnart/passmanager-back.git
+      # BACK_REPO: git@github.com:skewnart/passmanager-back.git
       # ! FRONT_REPO: git@github.com:skewnart/passmanager-front.git
       SSH_USER: ${{ secrets.SSH_USER }}
       SSH_HOST: ${{ secrets.SSH_HOST }}
       SSH_PORT: ${{ secrets.SSH_PORT }}
       DEPLOY_BACK: ${{ secrets[format('{0}_BACKEND_PATH', inputs.environment)] }}
       DEPLOY_FRONT: ${{ secrets[format('{0}_FRONTEND_PATH', inputs.environment)] }}
-      BUILD_TARGET: aarch64-unknown-linux-gnu
 
     steps:
       - name: Chargement des secrets
-#        ! id: load-secrets
         run: |
           echo "SSH_USER=$SSH_USER" >> $GITHUB_ENV
           echo "SSH_HOST=$SSH_HOST" >> $GITHUB_ENV
@@ -68,27 +66,10 @@ jobs:
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets['SSH_PK'] }}" >> ~/.ssh/id_rsa
-          echo "${{ secrets['SSH_GITHUB_PK'] }}" >> ~/.ssh/id_rsa_github
           chmod 600 ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa_github
           echo "Host $SSH_HOST
-            IdentityFile ~/.ssh/id_rsa
-          Host *github*
-            IdentityFile ~/.ssh/id_rsa_github" > ~/.ssh/config
+            IdentityFile ~/.ssh/id_rsa" > ~/.ssh/config
           ssh-keyscan -p $SSH_PORT -H $SSH_HOST >> ~/.ssh/known_hosts
-
-      - name: Configuration build
-        run: |
-          rustup target add $BUILD_TARGET
-          cargo install cross --git https://github.com/cross-rs/cross
-
-      - name: Clonage & build backend
-        run: |
-          git clone --depth 1 --branch ${{ inputs.back_ref }} $BACK_REPO back
-          cd back
-          cross build --release --target=$BUILD_TARGET
-          cd ..
-          tar czf back.tar.gz -C back/target/$BUILD_TARGET/release .
 
       # ! - name: 📦 Cloner et builder le frontend Svelte
       # !  run: |
@@ -103,14 +84,16 @@ jobs:
         run: |
           ssh $SSH_USER@$SSH_HOST -p $SSH_PORT "
             set -e
-            echo 'Backup back'
-            rm -rf $DEPLOY_BACK.bak
-            mv $DEPLOY_BACK $DEPLOY_BACK.bak
-            mkdir -p $DEPLOY_BACK
-          "
-          scp -P $SSH_PORT back.tar.gz $SSH_USER@$SSH_HOST:/tmp/back.tar.gz
-          ssh $SSH_USER@$SSH_HOST -p $SSH_PORT "
-            tar xzf /tmp/back.tar.gz -C $DEPLOY_BACK
+            echo 'Sauvegarde back'
+            rm -rf $DEPLOY_BACK/app.bak
+            mv $DEPLOY_BACK/app $DEPLOY_BACK/app.bak
+            mkdir $DEPLOY_BACK/app
+            echo 'Mise à jour repo'
+            cd $DEPLOY_BACK/code
+            git checkout ${{ inputs.back_ref }}
+            git pull
+            cargo build --release
+            cp -r ./target/release/* $DEPLOY_BACK/app/
             sudo ${{ secrets[format('{0}_RESTART_BACKEND_CMD', inputs.environment)] }}
           "
 
