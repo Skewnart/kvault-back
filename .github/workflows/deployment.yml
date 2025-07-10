@@ -84,16 +84,16 @@ jobs:
         run: |
           ssh $SSH_USER@$SSH_HOST -p $SSH_PORT "
             set -e
-            echo 'Sauvegarde back'
-            rm -rf $DEPLOY_BACK/app.bak
-            mv $DEPLOY_BACK/app $DEPLOY_BACK/app.bak
-            mkdir $DEPLOY_BACK/app
-            echo 'Mise à jour repo'
-            cd $DEPLOY_BACK/code
-            git checkout ${{ inputs.back_ref }}
-            git pull
-            cargo build --release
-            cp -r ./target/release/* $DEPLOY_BACK/app/
+            echo 'Sauvegarde back' && \
+            rm -rf $DEPLOY_BACK/app.bak && \
+            mv $DEPLOY_BACK/app $DEPLOY_BACK/app.bak && \
+            mkdir $DEPLOY_BACK/app && \
+            echo 'Mise à jour repo' && \
+            cd $DEPLOY_BACK/code && \
+            git checkout ${{ inputs.back_ref }} && \
+            git pull && \
+            cargo build --release && \
+            cp -r ./target/release/* $DEPLOY_BACK/app/ && \
             sudo ${{ secrets[format('{0}_RESTART_BACKEND_CMD', inputs.environment)] }}
           "
 
