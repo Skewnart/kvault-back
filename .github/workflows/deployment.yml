@@ -13,7 +13,7 @@ on:
           - STAGING
           - PRODUCTION
       back_ref:
-        description: "Branche du backend"
+        description: "Branche / Tag / Commit du backend"
         required: false
       # ! front_ref:
       #   ! description: "Tag ou commit du frontend"
@@ -45,8 +45,6 @@ jobs:
     name: Déploiement
     runs-on: ubuntu-latest
     env:
-      # BACK_REPO: git@github.com:skewnart/passmanager-back.git
-      # ! FRONT_REPO: git@github.com:skewnart/passmanager-front.git
       SSH_USER: ${{ secrets.SSH_USER }}
       SSH_HOST: ${{ secrets.SSH_HOST }}
       SSH_PORT: ${{ secrets.SSH_PORT }}
@@ -67,9 +65,9 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets['SSH_PK'] }}" >> ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          echo "Host $SSH_HOST
-            IdentityFile ~/.ssh/id_rsa" > ~/.ssh/config
           ssh-keyscan -p $SSH_PORT -H $SSH_HOST >> ~/.ssh/known_hosts
+      # echo "Host $SSH_HOST
+      #   IdentityFile ~/.ssh/id_rsa" > ~/.ssh/config
 
       # ! - name: 📦 Cloner et builder le frontend Svelte
       # !  run: |
@@ -81,22 +79,29 @@ jobs:
       # !    tar czf front.tar.gz -C front/build .
 
       - name: Déploiement backend
+        id: deployment-back
         run: |
           ssh $SSH_USER@$SSH_HOST -p $SSH_PORT "
             set -e
-            echo '## Archivage ancienne version' && \
+            echo '📦 Archivage ancienne version' && \
             rm -rf $DEPLOY_BACK/app.bak && \
             mv $DEPLOY_BACK/app $DEPLOY_BACK/app.bak && \
             mkdir $DEPLOY_BACK/app && \
-            echo '## Mise à jour repository' && \
+            echo '📦 Archivage OK' && \
+            echo '♻️ Mise à jour repository' && \
             cd $DEPLOY_BACK/code && \
             git checkout ${{ inputs.back_ref }} && \
             git pull && \
+            echo '♻️ Mise à jour OK' && \
+            echo '🛠️ Build release' && \
             /home/$SSH_USER/.cargo/bin/cargo build --release && \
-            echo '## Mise à jour backend' && \
+            echo '🛠️ Build OK' && \
+            echo '📲 Mise à jour backend' && \
             cp -r ./target/release/* $DEPLOY_BACK/app/ && \
-            echo '## Restart backend' && \
+            echo '📲 Mise à jour OK' && \
+            echo '🚀 Restart backend' && \
             sudo ${{ secrets[format('{0}_RESTART_BACKEND_CMD', inputs.environment)] }}
+            echo '🚀 Restart OK'
           "
 
       # !- name: 🚀 Déployer frontend
@@ -128,10 +133,11 @@ jobs:
       # !    "
       # !    exit 1
 
-      # - name: Nettoyage des backups
-        # ! if: steps.deploy_front.outcome == 'success'
-      #   run: |
-      #     echo "✅ Déploiement réussi. Suppression des backups..."
-      #     ssh $SSH_USER@$SSH_HOST -p $SSH_PORT "
-      #       rm -rf $DEPLOY_BACK.bak
-      #     "
+      - name: Nettoyage des backups
+        if: steps.deployment-back.outcome == 'success'
+        run: |
+          echo "🛰️ Envoi des backups en orbite..."
+          ssh $SSH_USER@$SSH_HOST -p $SSH_PORT "
+            rm -rf $DEPLOY_BACK/app.bak
+          "
+          echo "🛰️ Envoi OK"
