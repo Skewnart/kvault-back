@@ -84,16 +84,18 @@ jobs:
         run: |
           ssh $SSH_USER@$SSH_HOST -p $SSH_PORT "
             set -e
-            echo 'Sauvegarde back' && \
+            echo '## Archivage ancienne version' && \
             rm -rf $DEPLOY_BACK/app.bak && \
             mv $DEPLOY_BACK/app $DEPLOY_BACK/app.bak && \
             mkdir $DEPLOY_BACK/app && \
-            echo 'Mise à jour repo' && \
+            echo '## Mise à jour repository' && \
             cd $DEPLOY_BACK/code && \
             git checkout ${{ inputs.back_ref }} && \
             git pull && \
             /home/$SSH_USER/.cargo/bin/cargo build --release && \
+            echo '## Mise à jour backend' && \
             cp -r ./target/release/* $DEPLOY_BACK/app/ && \
+            echo '## Restart backend' && \
             sudo ${{ secrets[format('{0}_RESTART_BACKEND_CMD', inputs.environment)] }}
           "
 
