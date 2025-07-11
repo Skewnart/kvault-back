@@ -29,17 +29,17 @@ jobs:
           echo "Vérification qu'au moins un tag / commit / branche est renseigné"
           echo "${{ inputs.back_ref }}" | grep -P '^.+$'
 
-  # build_test:
-  #   name: build & tests
-  #   runs-on: ubuntu-latest
+  build_test:
+    name: build & tests
+    runs-on: ubuntu-latest
 
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-  #     - name: Build
-  #       run: cargo build --verbose
-  #     - name: Test
-  #       run: cargo test --verbose
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Build
+        run: cargo build --verbose
+      - name: Test
+        run: cargo test --verbose
 
   deploy:
     name: Déploiement
@@ -83,11 +83,11 @@ jobs:
         run: |
           ssh $SSH_USER@$SSH_HOST -p $SSH_PORT "
             set -e
-            echo '📦 Archivage ancienne version' && \
+            echo '📦 Création backup' && \
             rm -rf $DEPLOY_BACK/app.bak && \
             mv $DEPLOY_BACK/app $DEPLOY_BACK/app.bak && \
             mkdir $DEPLOY_BACK/app && \
-            echo '📦 Archivage OK' && \
+            echo '📦 Création OK' && \
             echo '♻️ Mise à jour repository' && \
             cd $DEPLOY_BACK/code && \
             git checkout ${{ inputs.back_ref }} && \
