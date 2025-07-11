@@ -46,7 +46,7 @@ jobs:
     name: Déploiement
     runs-on: ubuntu-latest
     needs: build_test
-    
+
     env:
       SSH_USER: ${{ secrets.SSH_USER }}
       SSH_HOST: ${{ secrets.SSH_HOST }}
@@ -93,8 +93,9 @@ jobs:
             echo '📦 Création OK' && \
             echo '♻️ Mise à jour repository' && \
             cd $DEPLOY_BACK/code && \
-            git checkout ${{ inputs.back_ref }} && \
-            git pull && \
+            git fetch && \
+            git reset --hard origin/${{ inputs.back_ref }} && \
+            git clean -f && \
             echo '♻️ Mise à jour OK' && \
             echo '🛠️ Build release' && \
             /home/$SSH_USER/.cargo/bin/cargo build --release && \
