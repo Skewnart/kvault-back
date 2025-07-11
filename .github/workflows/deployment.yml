@@ -92,7 +92,7 @@ jobs:
             cd $DEPLOY_BACK/code && \
             git checkout ${{ inputs.back_ref }} && \
             git pull && \
-            cargo build --release && \
+            /home/$SSH_USER/.cargo/bin/cargo build --release && \
             cp -r ./target/release/* $DEPLOY_BACK/app/ && \
             sudo ${{ secrets[format('{0}_RESTART_BACKEND_CMD', inputs.environment)] }}
           "
