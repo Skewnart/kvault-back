@@ -80,7 +80,7 @@ jobs:
             cp -r ./target/release/* $DEPLOY_PATH/app/ && \
             echo '📲 Mise à jour OK' && \
             echo '🚀 Restart backend' && \
-            sudo ${{ secrets['RESTART_CMD'] }}
+            ${{ secrets['RESTART_CMD'] }}
             echo '🚀 Restart OK'
           "
 
