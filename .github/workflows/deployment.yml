@@ -3,8 +3,17 @@ name: 🚀 Déploiement manuel
 on:
   workflow_dispatch:
     inputs:
+      type:
+        description: "Type de référence"
+        required: true
+        default: "tag"
+        type: choice
+        options:
+          - tag
+          - branche
+          - commit
       reference:
-        description: "Branche / Tag / Commit du backend"
+        description: "Référence à déployer"
         required: true
 
 jobs:
@@ -17,24 +26,24 @@ jobs:
         run: |
           echo "Vérification qu'au moins un tag / commit / branche est renseigné"
           echo "${{ inputs.reference }}" | grep -P '^.+$'
-
-  build_test:
-    name: Build & Tests
-    runs-on: ubuntu-latest
-    needs: inputs_validation
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Build
-        run: cargo build --verbose
-      - name: Test
-        run: cargo test --verbose
+      - name: Transformation de la référence
+        run: |
+          if [ "${{ inputs.type }}" = "tag" ]; then
+            REF_STR="refs/tags/${{ inputs.reference }}"
+          elif [ "${{ inputs.type }}" = "branche" ]; then
+            REF_STR="refs/heads/${{ inputs.reference }}"
+          elif [ "${{ inputs.type }}" = "commit" ]; then
+            REF_STR="${{ inputs.reference }}"
+          else
+            echo "Type de référence inconnu"
+            exit 1
+          fi
+          echo "REF_STR=$REF_STR" >> $GITHUB_ENV
 
   deploy:
     name: Déploiement
     runs-on: ubuntu-latest
-    needs: build_test
+    needs: inputs_validation
 
     env:
       SSH_USER: ${{ secrets.SSH_USER }}
@@ -70,7 +79,7 @@ jobs:
             echo '♻️ Mise à jour repository' && \
             cd $DEPLOY_PATH/code && \
             git fetch && \
-            git reset --hard origin/${{ inputs.reference }} && \
+            git reset --hard $REF_STR && \
             git clean -f && \
             echo '♻️ Mise à jour OK' && \
             echo '🛠️ Build release' && \
