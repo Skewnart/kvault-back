@@ -5,3 +5,12 @@ edition = "2024"
 
 [dependencies]
 actix-web = "4"
+
+dotenvy = "0.15"
+serde = { version = "1", features = ["derive"] }
+confik = "0.15"
+deadpool-postgres = { version = "0.14", features = ["serde"] }
+derive_more = { version = "2", features = ["display", "error", "from"] }
+tokio-pg-mapper = "0.2.0"
+tokio-pg-mapper-derive = "0.2.0"
+tokio-postgres = "0.7"
