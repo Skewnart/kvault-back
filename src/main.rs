@@ -8,22 +8,21 @@ use confik::{Configuration as _, EnvSource};
 use deadpool_postgres::{Client, Pool};
 use tokio_postgres::NoTls;
 
-use crate::config::ExampleConfig;
-
 mod config;
 mod db;
 mod errors;
 mod models;
 
-use self::{errors::MyError, models::User};
+use crate::config::EnvConfig;
+
+use self::{errors::DbError, models::User};
 
 // TODO il faut mettre en place le logging avec les niveau de log
 // TODO Il faut absolument comprendre toute la mise en place de PG (tout est pris "à la base" des exemples du repo d'actix)
 // TODO donc ça comprend aussi la récupération des env et la mise en place de pg
 
 pub async fn get_users(ThinData(db_pool): web::ThinData<Pool>) -> Result<HttpResponse, Error> {
-    let client: Client = db_pool.get().await.map_err(MyError::PoolError)?;
-
+    let client: Client = db_pool.get().await.map_err(DbError::PoolError)?;
     let users = db::get_users(&client).await?;
 
     Ok(HttpResponse::Ok().json(users))
@@ -34,9 +33,7 @@ pub async fn add_user(
     ThinData(db_pool): web::ThinData<Pool>,
 ) -> Result<HttpResponse, Error> {
     let user_info: User = user.into_inner();
-
-    let client: Client = db_pool.get().await.map_err(MyError::PoolError)?;
-
+    let client: Client = db_pool.get().await.map_err(DbError::PoolError)?;
     let new_user = db::add_user(&client, user_info).await?;
 
     Ok(HttpResponse::Ok().json(new_user))
@@ -62,14 +59,14 @@ async fn main() -> std::io::Result<()> {
 
     println!("Port utilisé : {port}");
 
-    dotenvy::dotenv_override().ok();
+    dotenvy::dotenv().ok();
 
-    let config = ExampleConfig::builder()
+    let config = EnvConfig::builder()
         .override_with(EnvSource::new())
         .try_build()
         .unwrap();
 
-    let pool = config.pg.create_pool(None, NoTls).unwrap();
+    let pool = config.database.create_pool(None, NoTls).unwrap();
 
     // # Test de connexion à la base au démarrage
     println!("Test de connexion à la base PostgreSQL.");
@@ -82,18 +79,20 @@ async fn main() -> std::io::Result<()> {
     }
 
     HttpServer::new(move || {
-        App::new().app_data(web::ThinData(pool.clone())).service(
-            web::scope("/api")
-                .service(
-                    web::resource("/users")
-                        .route(web::get().to(get_users))
-                        .route(web::post().to(add_user)),
-                )
-                .route("", web::get().to(index))
-                .route("{name}", web::get().to(hello)),
+        App::new()
+            .app_data(web::ThinData(pool.clone()))
+            .service(
+                web::scope("/api")
+                    .service(
+                        web::resource("/users")
+                            .route(web::get().to(get_users))
+                            .route(web::post().to(add_user)),
+                    )
+                    .route("", web::get().to(index))
+                    .route("{name}", web::get().to(hello)),
         )
     })
-    .bind(("0.0.0.0", port))?
+    .bind(("127.0.0.1", port))?
     .run()
     .await
 }
