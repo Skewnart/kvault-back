@@ -1,7 +1,7 @@
 use deadpool_postgres::Client;
 use tokio_pg_mapper::FromTokioPostgresRow;
 
-use crate::models::{errors::DbError, db::{user::User}};
+use crate::models::{db::user::User, errors::DbError};
 
 pub async fn get_users(client: &Client) -> Result<Vec<User>, DbError> {
     let stmt = include_str!("../resources/sql/users/select_all.sql");
