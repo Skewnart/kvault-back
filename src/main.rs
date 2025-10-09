@@ -1,7 +1,7 @@
 mod controllers;
-mod database;
 mod errors;
 mod models;
+mod repository;
 
 use actix_web::{App, HttpServer, web};
 use std::env;
@@ -12,8 +12,6 @@ use tokio_postgres::NoTls;
 use self::controllers::user_controller;
 use self::models::config::EnvConfig;
 
-// TODO déplacer les actions dans des contrôleurs exprès (dossier controllers [x], models [x], errors [x], resources [], repository [] (voir en-dessous))
-// TODO dossier repository au lieu du fichier database.rs
 // TODO récupérer le port d'écoute depuis la config au lieu juste du 5001 en paramètre
 // TODO delete les warnings au build
 // TODO il faut mettre en place le logging avec les niveaux de log

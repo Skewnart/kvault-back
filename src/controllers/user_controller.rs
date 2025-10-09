@@ -1,4 +1,4 @@
-use crate::{database, errors::db_error::DbError, models::db::user::User};
+use crate::{errors::db_error::DbError, models::db::user::User, repository::user_repository};
 use actix_web::{
     Error, HttpResponse,
     web::{self, ThinData},
@@ -17,7 +17,7 @@ pub fn configure(cfg: &mut web::ServiceConfig) {
 
 async fn get_users(ThinData(db_pool): web::ThinData<Pool>) -> Result<HttpResponse, Error> {
     let client: Client = db_pool.get().await.map_err(DbError::PoolError)?;
-    let users = database::get_users(&client).await?;
+    let users = user_repository::get_user(&client).await?;
 
     Ok(HttpResponse::Ok().json(users))
 }
@@ -28,7 +28,7 @@ async fn add_user(
 ) -> Result<HttpResponse, Error> {
     let user_info: User = user.into_inner();
     let client: Client = db_pool.get().await.map_err(DbError::PoolError)?;
-    let new_user = database::add_user(&client, user_info).await?;
+    let new_user = user_repository::add_user(&client, user_info).await?;
 
     Ok(HttpResponse::Ok().json(new_user))
 }
