@@ -1,7 +1,4 @@
-use crate::{
-    database,
-    models::{db::user::User, errors::DbError},
-};
+use crate::{database, errors::db_error::DbError, models::db::user::User};
 use actix_web::{
     Error, HttpResponse,
     web::{self, ThinData},
