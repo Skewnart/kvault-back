@@ -3,9 +3,9 @@ use serde::Deserialize;
 
 #[derive(Debug, Default, Configuration)]
 pub struct EnvConfig {
-    pub example_config: String,
     #[confik(from = DbConfig)]
     pub database: deadpool_postgres::Config,
+    pub server : ServerConfig
 }
 
 #[derive(Debug, Deserialize)]
@@ -20,4 +20,9 @@ impl From<DbConfig> for deadpool_postgres::Config {
 
 impl confik::Configuration for DbConfig {
     type Builder = Option<Self>;
+}
+
+#[derive(Debug, Default, Configuration)]
+pub struct ServerConfig {
+    pub port : u16
 }

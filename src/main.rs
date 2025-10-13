@@ -4,7 +4,6 @@ mod models;
 mod repository;
 
 use actix_web::{App, HttpServer, web};
-use std::env;
 
 use confik::{Configuration as _, EnvSource};
 use tokio_postgres::NoTls;
@@ -12,31 +11,24 @@ use tokio_postgres::NoTls;
 use self::controllers::user_controller;
 use self::models::config::EnvConfig;
 
-// TODO récupérer le port d'écoute depuis la config au lieu juste du 5001 en paramètre
-// TODO delete les warnings au build
+// TODO scinder les modèles de configuration exprès dans un module de configuration
+// TODO delete les warnings du build
+// TODO gérer les manques dans le .env ?
 // TODO il faut mettre en place le logging avec les niveaux de log
 // TODO implémenter les tests ??
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    let mut args = env::args();
-    args.next().expect("First argument is missing");
-
-    let port = match args.next() {
-        Some(port) => port.parse::<u16>().unwrap_or(5001),
-        _ => 5001,
-    };
-
-    println!("Port utilisé : {port}");
 
     dotenvy::dotenv().ok();
-
+    
     let config = EnvConfig::builder()
-        .override_with(EnvSource::new())
-        .try_build()
-        .unwrap();
+    .override_with(EnvSource::new())
+    .try_build()
+    .unwrap();
 
     let pool = config.database.create_pool(None, NoTls).unwrap();
+    let port = config.server.port;
 
     // # Test de connexion à la base au démarrage
     println!("Test de connexion à la base PostgreSQL.");
@@ -47,6 +39,8 @@ async fn main() -> std::io::Result<()> {
             std::process::exit(1);
         }
     }
+
+    println!("Port utilisé : {port}");
 
     HttpServer::new(move || {
         App::new().service(
