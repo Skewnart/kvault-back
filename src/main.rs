@@ -11,8 +11,6 @@ use tokio_postgres::NoTls;
 use self::controllers::user_controller;
 use self::models::config::env_config::EnvConfig;
 
-// TODO delete les warnings du build
-// TODO gérer les manques dans le .env ?
 // TODO il faut mettre en place le logging avec les niveaux de log
 // TODO implémenter les tests ??
 
@@ -24,7 +22,7 @@ async fn main() -> std::io::Result<()> {
     let config = EnvConfig::builder()
     .override_with(EnvSource::new())
     .try_build()
-    .unwrap();
+    .expect("Configuration from .env file failed ");
 
     let pool = config.database.create_pool(None, NoTls).unwrap();
     let port = config.server.port;
