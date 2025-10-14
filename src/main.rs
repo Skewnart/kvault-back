@@ -6,38 +6,39 @@ mod repository;
 use actix_web::{App, HttpServer, web};
 
 use confik::{Configuration as _, EnvSource};
+use log::{error, info};
 use tokio_postgres::NoTls;
 
 use self::controllers::user_controller;
 use self::models::config::env_config::EnvConfig;
 
-// TODO il faut mettre en place le logging avec les niveaux de log
+// Implémenter un filter / middleware pour faire un log erreur quand il y a une erreur à retourner d'une action de controleur
 // TODO implémenter les tests ??
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-
     dotenvy::dotenv().ok();
-    
+
     let config = EnvConfig::builder()
-    .override_with(EnvSource::new())
-    .try_build()
-    .expect("Configuration from .env file failed ");
+        .override_with(EnvSource::new())
+        .try_build()
+        .expect("Configuration from .env file failed ");
+
+    env_logger::init();
 
     let pool = config.database.create_pool(None, NoTls).unwrap();
     let port = config.server.port;
 
-    // # Test de connexion à la base au démarrage
-    println!("Test de connexion à la base PostgreSQL.");
+    info!("Test de connexion à la base PostgreSQL.");
     match pool.get().await {
-        Ok(_) => println!("Connexion à la base PostgreSQL réussie."),
+        Ok(_) => info!("Connexion à la base PostgreSQL réussie."),
         Err(e) => {
-            eprintln!("Erreur de connexion à la base PostgreSQL : {e}");
+            error!("Erreur de connexion à la base PostgreSQL : {e}");
             std::process::exit(1);
         }
     }
 
-    println!("Port utilisé : {port}");
+    info!("Port externe de l'application : {port}");
 
     HttpServer::new(move || {
         App::new().service(

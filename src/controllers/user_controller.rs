@@ -4,6 +4,7 @@ use actix_web::{
     web::{self, ThinData},
 };
 use deadpool_postgres::{Client, Pool};
+use log::{error, info};
 
 const ENDPOINT: &str = "/users";
 
@@ -16,6 +17,8 @@ pub fn configure(cfg: &mut web::ServiceConfig) {
 }
 
 async fn get_users(ThinData(db_pool): web::ThinData<Pool>) -> Result<HttpResponse, Error> {
+    info!("/GET users");
+
     let client: Client = db_pool.get().await.map_err(DbError::PoolError)?;
     let users = user_repository::get_user(&client).await?;
 
@@ -26,9 +29,15 @@ async fn add_user(
     user: web::Json<User>,
     ThinData(db_pool): web::ThinData<Pool>,
 ) -> Result<HttpResponse, Error> {
+    info!("/POST users");
+
     let user_info: User = user.into_inner();
     let client: Client = db_pool.get().await.map_err(DbError::PoolError)?;
-    let new_user = user_repository::add_user(&client, user_info).await?;
+    let new_user = user_repository::add_user(&client, user_info).await;
 
-    Ok(HttpResponse::Ok().json(new_user))
+    if let Err(err) = &new_user {
+        error!("{err}");
+    }
+
+    Ok(HttpResponse::Ok().json(new_user.unwrap()))
 }
