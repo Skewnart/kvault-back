@@ -9,9 +9,8 @@ use confik::{Configuration as _, EnvSource};
 use tokio_postgres::NoTls;
 
 use self::controllers::user_controller;
-use self::models::config::EnvConfig;
+use self::models::config::env_config::EnvConfig;
 
-// TODO scinder les modèles de configuration exprès dans un module de configuration
 // TODO delete les warnings du build
 // TODO gérer les manques dans le .env ?
 // TODO il faut mettre en place le logging avec les niveaux de log
