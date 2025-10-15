@@ -15,8 +15,6 @@ use crate::middlewares::error_logger::ErrorLogger;
 use self::controllers::user_controller;
 use self::models::config::env_config::EnvConfig;
 
-// TODO implémenter les tests ??
-
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     dotenvy::dotenv().ok();
