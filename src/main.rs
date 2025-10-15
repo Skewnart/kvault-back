@@ -18,13 +18,12 @@ use self::models::config::env_config::EnvConfig;
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     dotenvy::dotenv().ok();
+    env_logger::init();
 
     let config = EnvConfig::builder()
         .override_with(EnvSource::new())
         .try_build()
         .expect("Configuration from .env file failed ");
-
-    env_logger::init();
 
     let pool = config.database.create_pool(None, NoTls).unwrap();
     let port = config.server.port;
