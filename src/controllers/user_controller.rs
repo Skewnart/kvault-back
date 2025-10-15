@@ -4,7 +4,7 @@ use actix_web::{
     web::{self, ThinData},
 };
 use deadpool_postgres::{Client, Pool};
-use log::{error, info};
+use log::info;
 
 const ENDPOINT: &str = "/users";
 
@@ -33,11 +33,7 @@ async fn add_user(
 
     let user_info: User = user.into_inner();
     let client: Client = db_pool.get().await.map_err(DbError::PoolError)?;
-    let new_user = user_repository::add_user(&client, user_info).await;
+    let new_user = user_repository::add_user(&client, user_info).await?;
 
-    if let Err(err) = &new_user {
-        error!("{err}");
-    }
-
-    Ok(HttpResponse::Ok().json(new_user.unwrap()))
+    Ok(HttpResponse::Ok().json(new_user))
 }

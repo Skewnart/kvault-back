@@ -1,5 +1,6 @@
 mod controllers;
 mod errors;
+mod middlewares;
 mod models;
 mod repository;
 
@@ -9,10 +10,11 @@ use confik::{Configuration as _, EnvSource};
 use log::{error, info};
 use tokio_postgres::NoTls;
 
+use crate::middlewares::error_logger::ErrorLogger;
+
 use self::controllers::user_controller;
 use self::models::config::env_config::EnvConfig;
 
-// Implémenter un filter / middleware pour faire un log erreur quand il y a une erreur à retourner d'une action de controleur
 // TODO implémenter les tests ??
 
 #[actix_web::main]
@@ -43,6 +45,7 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(move || {
         App::new().service(
             web::scope("/api")
+                .wrap(ErrorLogger)
                 .app_data(web::ThinData(pool.clone()))
                 .configure(user_controller::configure),
         )

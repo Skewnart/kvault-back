@@ -16,10 +16,11 @@ impl ResponseError for DbError {
     fn error_response(&self) -> HttpResponse {
         match *self {
             DbError::NotFound => HttpResponse::NotFound().finish(),
+            DbError::PGError(ref err) => HttpResponse::InternalServerError().body(err.to_string()),
+            DbError::PGMError(ref err) => HttpResponse::InternalServerError().body(err.to_string()),
             DbError::PoolError(ref err) => {
                 HttpResponse::InternalServerError().body(err.to_string())
             }
-            _ => HttpResponse::InternalServerError().finish(),
         }
     }
 }
