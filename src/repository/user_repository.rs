@@ -1,10 +1,10 @@
 use deadpool_postgres::Client;
 use tokio_pg_mapper::FromTokioPostgresRow;
 
-use crate::{errors::DbError, models::User};
+use crate::{errors::db_error::DbError, models::db::user::User};
 
-pub async fn get_users(client: &Client) -> Result<Vec<User>, DbError> {
-    let stmt = include_str!("../resources/sql/users/select_all.sql");
+pub async fn get_user(client: &Client) -> Result<Vec<User>, DbError> {
+    let stmt = include_str!("./sql/users/select_all.sql");
     let stmt = stmt.replace("$table_fields", &User::sql_table_fields());
     let stmt = client.prepare(&stmt).await.unwrap();
 
@@ -19,7 +19,7 @@ pub async fn get_users(client: &Client) -> Result<Vec<User>, DbError> {
 }
 
 pub async fn add_user(client: &Client, user_info: User) -> Result<User, DbError> {
-    let _stmt = include_str!("../resources/sql/users/insert.sql");
+    let _stmt = include_str!("./sql/users/insert.sql");
     let _stmt = _stmt.replace("$table_fields", &User::sql_table_fields());
     let stmt = client.prepare(&_stmt).await.unwrap();
 

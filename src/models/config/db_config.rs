@@ -1,12 +1,4 @@
-use confik::Configuration;
 use serde::Deserialize;
-
-#[derive(Debug, Default, Configuration)]
-pub struct EnvConfig {
-    pub example_config: String,
-    #[confik(from = DbConfig)]
-    pub database: deadpool_postgres::Config,
-}
 
 #[derive(Debug, Deserialize)]
 #[serde(transparent)]

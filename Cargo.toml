@@ -1,6 +1,6 @@
 [package]
 name = "kvault"
-version = "0.1.0"
+version = "0.2.0-alpha"
 edition = "2024"
 
 [dependencies]
@@ -14,3 +14,6 @@ derive_more = { version = "2", features = ["display", "error", "from"] }
 tokio-pg-mapper = "0.2.0"
 tokio-pg-mapper-derive = "0.2.0"
 tokio-postgres = "0.7"
+log = "0.4.28"
+env_logger = "0.11.8"
+futures-util = "0.3.31"
