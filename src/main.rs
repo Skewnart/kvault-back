@@ -1,35 +1,53 @@
-use std::env;
+mod controllers;
+mod errors;
+mod middlewares;
+mod models;
+mod repository;
 
-use actix_web::{web, App, HttpResponse, HttpServer, Responder};
+use actix_web::{App, HttpServer, web};
 
-async fn index() -> impl Responder {
-    HttpResponse::Ok().body("Hello, World !")
-}
+use confik::{Configuration as _, EnvSource};
+use log::{error, info};
+use tokio_postgres::NoTls;
 
-async fn hello(name: web::Path<String>) -> impl Responder {
-    HttpResponse::Ok().body(format!("Hello {} !", &name))
-}
+use crate::middlewares::error_logger::ErrorLogger;
+
+use self::controllers::user_controller;
+use self::models::config::env_config::EnvConfig;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    let mut args = env::args();
-    args.next().expect("First argument is missing");
+    dotenvy::dotenv().ok();
+    env_logger::init();
 
-    let port = match args.next() {
-        Some(port) => port.parse::<u16>().unwrap_or(5001),
-        _ => 5001
-    };
+    let config = EnvConfig::builder()
+        .override_with(EnvSource::new())
+        .try_build()
+        .expect("Configuration from .env file failed ");
 
-    println!("Port utilisé : {port}");
+    let pool = config.database.create_pool(None, NoTls).unwrap();
+    let port = config.server.port;
 
-    HttpServer::new(
-        || App::new()
-            .service(
-                web::scope("/api")
-                    .route("", web::get().to(index))
-                    .route("{name}", web::get().to(hello))
-            ))
-        .bind(("0.0.0.0", port))?
-        .run()
-        .await
+    info!("Test de connexion à la base PostgreSQL.");
+    match pool.get().await {
+        Ok(_) => info!("Connexion à la base PostgreSQL réussie."),
+        Err(e) => {
+            error!("Erreur de connexion à la base PostgreSQL : {e}");
+            std::process::exit(1);
+        }
+    }
+
+    info!("Port externe de l'application : {port}");
+
+    HttpServer::new(move || {
+        App::new().service(
+            web::scope("/api")
+                .wrap(ErrorLogger)
+                .app_data(web::ThinData(pool.clone()))
+                .configure(user_controller::configure),
+        )
+    })
+    .bind(("0.0.0.0", port))?
+    .run()
+    .await
 }
