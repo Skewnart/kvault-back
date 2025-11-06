@@ -5,7 +5,7 @@ See you soon !
 
 ## .env file
 
-Waiting for this file, I need to write down the .env file structure here, because the application needs some env inputs in order to work.
+Waiting for the README file, I need to write down the .env file structure here, because the application needs some env inputs in order to work.
 
 The following inputs are exhaustive :
 
