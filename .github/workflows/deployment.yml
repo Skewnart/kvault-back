@@ -26,19 +26,6 @@ jobs:
         run: |
           echo "Vérification qu'au moins un tag / commit / branche est renseigné"
           echo "${{ inputs.reference }}" | grep -P '^.+$'
-      - name: Transformation de la référence
-        run: |
-          if [ "${{ inputs.type }}" = "tag" ]; then
-            REF_STR="refs/tags/${{ inputs.reference }}"
-          elif [ "${{ inputs.type }}" = "branche" ]; then
-            REF_STR="refs/heads/${{ inputs.reference }}"
-          elif [ "${{ inputs.type }}" = "commit" ]; then
-            REF_STR="${{ inputs.reference }}"
-          else
-            echo "Type de référence inconnu"
-            exit 1
-          fi
-          echo "REF_STR=$REF_STR" >> $GITHUB_ENV
 
   deploy:
     name: Déploiement
@@ -79,14 +66,16 @@ jobs:
             echo '♻️ Mise à jour repository' && \
             cd $DEPLOY_PATH/code && \
             git fetch && \
-            git reset --hard $REF_STR && \
             git clean -f && \
+            git checkout $REF_STR && \
+            git pull && \
             echo '♻️ Mise à jour OK' && \
             echo '🛠️ Build release' && \
             /home/$SSH_USER/.cargo/bin/cargo build --release && \
             echo '🛠️ Build OK' && \
             echo '📲 Mise à jour backend' && \
             cp -r ./target/release/* $DEPLOY_PATH/app/ && \
+            cp $DEPLOY_PATH/app.bak/.env $DEPLOY_PATH/app/ && \
             echo '📲 Mise à jour OK' && \
             echo '🚀 Restart backend' && \
             ${{ secrets['RESTART_CMD'] }}
