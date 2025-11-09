@@ -67,7 +67,7 @@ jobs:
             cd $DEPLOY_PATH/code && \
             git fetch && \
             git clean -f && \
-            git checkout $REF_STR && \
+            git checkout ${{ inputs.reference }} && \
             git pull && \
             echo '♻️ Mise à jour OK' && \
             echo '🛠️ Build release' && \
