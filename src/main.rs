@@ -10,9 +10,9 @@ use confik::{Configuration as _, EnvSource};
 use log::{error, info};
 use tokio_postgres::NoTls;
 
-use crate::middlewares::error_logger::ErrorLogger;
+use self::middlewares::error_logger::ErrorLogger;
 
-use self::controllers::user_controller;
+use self::controllers::{infos_controller, user_controller};
 use self::models::config::env_config::EnvConfig;
 
 #[actix_web::main]
@@ -44,7 +44,8 @@ async fn main() -> std::io::Result<()> {
             web::scope("/api")
                 .wrap(ErrorLogger)
                 .app_data(web::ThinData(pool.clone()))
-                .configure(user_controller::configure),
+                .configure(user_controller::configure)
+                .configure(infos_controller::configure),
         )
     })
     .bind(("0.0.0.0", port))?
