@@ -1,3 +1,4 @@
+use std::sync::Arc;
 use crate::{errors::db_error::DbError, models::db::user::User, repository::user_repository};
 use actix_web::{
     Error, HttpResponse,
@@ -5,12 +6,17 @@ use actix_web::{
 };
 use deadpool_postgres::{Client, Pool};
 use log::info;
+use crate::authentication::jwt_validator::JwtValidator;
+use crate::middlewares::jwt::JwtMiddleware;
 
 const ENDPOINT: &str = "/users";
 
 pub fn configure(cfg: &mut web::ServiceConfig) {
+    let validator = Arc::new(JwtValidator::new().expect("Échec de l'initialisation du validateur JWT"));
+
     cfg.service(
         web::resource(ENDPOINT)
+            .wrap(JwtMiddleware::new(validator.clone()))
             .route(web::get().to(get_users))
             .route(web::post().to(add_user)),
     );

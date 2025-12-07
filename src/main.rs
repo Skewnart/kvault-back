@@ -3,13 +3,15 @@ mod errors;
 mod middlewares;
 mod models;
 mod repository;
+mod authentication;
 
+use std::sync::Arc;
 use actix_web::{App, HttpServer, web};
 
 use confik::{Configuration as _, EnvSource};
 use log::{error, info};
 use tokio_postgres::NoTls;
-
+use crate::authentication::jwt_validator::JwtValidator;
 use self::middlewares::error_logger::ErrorLogger;
 
 use self::controllers::{infos_controller, user_controller};
