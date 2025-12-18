@@ -5,22 +5,22 @@ use actix_web::{
     dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform},
     Error, HttpMessage, HttpResponse,
 };
-use futures::future::{ok, Ready};
+use futures::future::{Ready};
 use std::sync::Arc;
 use actix_web::body::{EitherBody};
 use futures_util::future::{ready, LocalBoxFuture};
 
-pub struct JwtMiddleware {
+pub struct AuthenticationMiddleware {
     validator: Arc<JwtValidator>,
 }
 
-impl JwtMiddleware {
+impl AuthenticationMiddleware {
     pub fn new(validator: Arc<JwtValidator>) -> Self {
         Self { validator }
     }
 }
 
-impl<S, B> Transform<S, ServiceRequest> for JwtMiddleware
+impl<S, B> Transform<S, ServiceRequest> for AuthenticationMiddleware
 where
     S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
     S::Future: 'static,
@@ -28,24 +28,24 @@ where
 {
     type Response = ServiceResponse<EitherBody<B>>;
     type Error = Error;
-    type Transform = JwtMiddlewareService<S>;
+    type Transform = AuthenticationMiddlewareService<S>;
     type InitError = ();
     type Future = Ready<Result<Self::Transform, Self::InitError>>;
 
     fn new_transform(&self, service: S) -> Self::Future {
-         ready(Ok(JwtMiddlewareService {
+         ready(Ok(AuthenticationMiddlewareService {
             service: Rc::new(service),
             validator: self.validator.clone(),
         }))
     }
 }
 
-pub struct JwtMiddlewareService<S> {
+pub struct AuthenticationMiddlewareService<S> {
     service: Rc<S>,
     validator: Arc<JwtValidator>,
 }
 
-impl<S, B> Service<ServiceRequest> for JwtMiddlewareService<S>
+impl<S, B> Service<ServiceRequest> for AuthenticationMiddlewareService<S>
 where
     S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
     S::Future: 'static,

@@ -7,31 +7,31 @@ use log::error;
 use std::rc::Rc;
 use std::task::{Context, Poll};
 
-pub struct ErrorLogger;
+pub struct ErrorLoggerMiddleware;
 
-impl<S, B> Transform<S, ServiceRequest> for ErrorLogger
+impl<S, B> Transform<S, ServiceRequest> for ErrorLoggerMiddleware
 where
     S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
     B: actix_web::body::MessageBody + std::fmt::Debug + 'static,
 {
     type Response = ServiceResponse<B>;
     type Error = actix_web::Error;
+    type Transform = ErrorLoggerMiddlewareService<S>;
     type InitError = ();
-    type Transform = ErrorLoggerMiddleware<S>;
     type Future = Ready<Result<Self::Transform, Self::InitError>>;
 
     fn new_transform(&self, service: S) -> Self::Future {
-        ok(ErrorLoggerMiddleware {
+        ok(ErrorLoggerMiddlewareService {
             service: Rc::new(service),
         })
     }
 }
 
-pub struct ErrorLoggerMiddleware<S> {
+pub struct ErrorLoggerMiddlewareService<S> {
     service: Rc<S>,
 }
 
-impl<S, B> Service<ServiceRequest> for ErrorLoggerMiddleware<S>
+impl<S, B> Service<ServiceRequest> for ErrorLoggerMiddlewareService<S>
 where
     S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
     B: actix_web::body::MessageBody + std::fmt::Debug + 'static,

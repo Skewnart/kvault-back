@@ -5,14 +5,12 @@ mod models;
 mod repository;
 mod authentication;
 
-use std::sync::Arc;
 use actix_web::{App, HttpServer, web};
 
 use confik::{Configuration as _, EnvSource};
 use log::{error, info};
 use tokio_postgres::NoTls;
-use crate::authentication::jwt_validator::JwtValidator;
-use self::middlewares::error_logger::ErrorLogger;
+use crate::middlewares::error_logger_middleware::ErrorLoggerMiddleware;
 
 use self::controllers::{infos_controller, user_controller};
 use self::models::config::env_config::EnvConfig;
@@ -44,7 +42,7 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(move || {
         App::new().service(
             web::scope("/api")
-                .wrap(ErrorLogger)
+                .wrap(ErrorLoggerMiddleware)
                 .app_data(web::ThinData(pool.clone()))
                 .configure(user_controller::configure)
                 .configure(infos_controller::configure),

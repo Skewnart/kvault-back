@@ -7,7 +7,7 @@ use actix_web::{
 use deadpool_postgres::{Client, Pool};
 use log::info;
 use crate::authentication::jwt_validator::JwtValidator;
-use crate::middlewares::jwt::JwtMiddleware;
+use crate::middlewares::authentication_middleware::AuthenticationMiddleware;
 
 const ENDPOINT: &str = "/users";
 
@@ -16,7 +16,7 @@ pub fn configure(cfg: &mut web::ServiceConfig) {
 
     cfg.service(
         web::resource(ENDPOINT)
-            .wrap(JwtMiddleware::new(validator.clone()))
+            .wrap(AuthenticationMiddleware::new(validator.clone()))
             .route(web::get().to(get_users))
             .route(web::post().to(add_user)),
     );

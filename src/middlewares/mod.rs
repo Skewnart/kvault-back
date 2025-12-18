@@ -1,2 +1,2 @@
-pub mod error_logger;
-pub mod jwt;
+pub mod error_logger_middleware;
+pub mod authentication_middleware;
