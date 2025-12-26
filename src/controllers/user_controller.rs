@@ -4,8 +4,9 @@ use actix_web::{
     Error, HttpResponse,
     web::{self, ThinData},
 };
+use actix_web::web::Data;
 use deadpool_postgres::{Client, Pool};
-use log::info;
+use log::{debug, info};
 use crate::authentication::jwt_validator::JwtValidator;
 use crate::middlewares::authentication_middleware::AuthenticationMiddleware;
 
@@ -22,7 +23,7 @@ pub fn configure(cfg: &mut web::ServiceConfig) {
     );
 }
 
-async fn get_users(ThinData(db_pool): web::ThinData<Pool>) -> Result<HttpResponse, Error> {
+async fn get_users(ThinData(db_pool): ThinData<Pool>) -> Result<HttpResponse, Error> {
     info!("/GET users");
 
     let client: Client = db_pool.get().await.map_err(DbError::PoolError)?;
