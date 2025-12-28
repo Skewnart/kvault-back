@@ -1,4 +1,4 @@
-use actix_web::{Error, HttpResponse, web};
+use actix_web::{HttpResponse, web};
 use log::info;
 
 use crate::errors::common_error::CommonErrors;
@@ -13,7 +13,7 @@ pub fn configure(cfg: &mut web::ServiceConfig) {
     );
 }
 
-async fn get_version() -> Result<HttpResponse, Error> {
+async fn get_version() -> Result<HttpResponse, CommonErrors> {
     info!("/GET version");
 
     const CARGO_VERSION: &str = "CARGO_PKG_VERSION";

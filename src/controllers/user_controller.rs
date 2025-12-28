@@ -1,12 +1,11 @@
 use std::sync::Arc;
 use crate::{errors::db_error::DbError, models::db::user::User, repository::user_repository};
 use actix_web::{
-    Error, HttpResponse,
+    HttpResponse,
     web::{self, ThinData},
 };
-use actix_web::web::Data;
 use deadpool_postgres::{Client, Pool};
-use log::{debug, info};
+use log::{info};
 use crate::authentication::jwt_validator::JwtValidator;
 use crate::middlewares::authentication_middleware::AuthenticationMiddleware;
 
@@ -23,7 +22,7 @@ pub fn configure(cfg: &mut web::ServiceConfig) {
     );
 }
 
-async fn get_users(ThinData(db_pool): ThinData<Pool>) -> Result<HttpResponse, Error> {
+async fn get_users(ThinData(db_pool): ThinData<Pool>) -> Result<HttpResponse, DbError> {
     info!("/GET users");
 
     let client: Client = db_pool.get().await.map_err(DbError::PoolError)?;
@@ -35,7 +34,7 @@ async fn get_users(ThinData(db_pool): ThinData<Pool>) -> Result<HttpResponse, Er
 async fn add_user(
     user: web::Json<User>,
     ThinData(db_pool): web::ThinData<Pool>,
-) -> Result<HttpResponse, Error> {
+) -> Result<HttpResponse, DbError> {
     info!("/POST users");
 
     let user_info: User = user.into_inner();
