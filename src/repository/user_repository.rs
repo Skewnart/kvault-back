@@ -1,3 +1,6 @@
+use argon2::{Argon2, PasswordHash, PasswordHasher, PasswordVerifier};
+use argon2::password_hash::rand_core::OsRng;
+use argon2::password_hash::SaltString;
 use deadpool_postgres::Client;
 use tokio_pg_mapper::FromTokioPostgresRow;
 use tokio_postgres::Row;
@@ -25,6 +28,12 @@ pub async fn add_user(client: &Client, user_info: User) -> Result<User, DbError>
     let _stmt = _stmt.replace("$table_fields", &User::sql_table_fields());
     let stmt = client.prepare(&_stmt).await?;
 
+    let salt = SaltString::generate(&mut OsRng);
+    let hashed_password = Argon2::default()
+        .hash_password(user_info.password.as_bytes(), &salt)
+        .expect("Error while hashing password")
+        .to_string();
+
     client
         .query(
             &stmt,
@@ -33,6 +42,7 @@ pub async fn add_user(client: &Client, user_info: User) -> Result<User, DbError>
                 &user_info.first_name,
                 &user_info.last_name,
                 &user_info.username,
+                &hashed_password
             ],
         )
         .await?
@@ -50,8 +60,7 @@ pub async fn try_login(client: &Client, login_dto: LoginDTO) -> Result<i64, AppE
 
     let rows = client
         .query(&stmt, &[
-            &login_dto.username,
-            &login_dto.password
+            &login_dto.username
         ])
         .await
         .map_err(|_err| AppError::InternalServerError(_err.to_string()))?;
@@ -62,15 +71,19 @@ pub async fn try_login(client: &Client, login_dto: LoginDTO) -> Result<i64, AppE
         .pop()
         .ok_or(AppError::NotFound)?;
 
-    let password_check : bool = row.get(1);
-    if password_check {
-        let user_id : i64 = row.get(0);
-        return Ok(user_id);
+    if login_dto.password.len() == 0 {
+        return Ok(0);
     }
 
-    if login_dto.password.len() > 0 {
+    let password_valid = PasswordHash::new(row.get(1))
+        .and_then(|parsed_hash| {
+            Argon2::default().verify_password(login_dto.password.as_bytes(), &parsed_hash)
+        })
+        .map_or(false, |_| true);
+
+    if !password_valid {
         return Err(AppError::Unauthorized.into());
     }
 
-    Ok(0)
+    Ok(row.get(0))
 }

@@ -12,11 +12,11 @@ use crate::middlewares::authentication_middleware::AuthenticationMiddleware;
 const ENDPOINT: &str = "/users";
 
 pub fn configure(cfg: &mut web::ServiceConfig) {
-    let validator = Arc::new(JwtValidator::new().expect("Échec de l'initialisation du validateur JWT"));
+    // let validator = Arc::new(JwtValidator::new().expect("Échec de l'initialisation du validateur JWT"));
 
     cfg.service(
         web::resource(ENDPOINT)
-            .wrap(AuthenticationMiddleware::new(validator.clone()))
+            // .wrap(AuthenticationMiddleware::new(validator.clone()))
             .route(web::get().to(get_users))
             .route(web::post().to(add_user)),
     );

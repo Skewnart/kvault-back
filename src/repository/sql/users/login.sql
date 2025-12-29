@@ -1,1 +1,1 @@
-SELECT id, password = $2 FROM users WHERE username = $1;
+SELECT id, password FROM users WHERE username = $1;
