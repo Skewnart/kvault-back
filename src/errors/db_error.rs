@@ -4,12 +4,13 @@ use derive_more::{Display, Error, From};
 use tokio_pg_mapper::Error as PGMError;
 use tokio_postgres::error::Error as PGError;
 
-#[derive(Debug, Display, Error, From)]
+#[derive(Debug, Display, From)]
 pub enum DbError {
     NotFound,
     PGError(PGError),
     PGMError(PGMError),
     PoolError(PoolError),
+    StatementError(String),
 }
 
 impl ResponseError for DbError {
@@ -20,7 +21,8 @@ impl ResponseError for DbError {
             DbError::PGMError(ref err) => HttpResponse::InternalServerError().body(err.to_string()),
             DbError::PoolError(ref err) => {
                 HttpResponse::InternalServerError().body(err.to_string())
-            }
+            },
+            DbError::StatementError(ref err) => HttpResponse::InternalServerError().body(err.clone())
         }
     }
 }

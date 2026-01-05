@@ -10,3 +10,11 @@ pub struct User {
     pub username: String,
     pub password: String
 }
+
+#[derive(Deserialize, PostgresMapper, Serialize)]
+#[pg_mapper(table = "users")] // singular 'user' is a keyword..
+pub struct UserProfileDto {
+    pub username: String,
+    pub first_name: String,
+    pub last_name: String
+}

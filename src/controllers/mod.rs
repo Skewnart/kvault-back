@@ -1,3 +1,3 @@
 pub mod infos_controller;
-pub mod user_controller;
-pub mod login_controller;
+pub mod profile_controller;
+pub mod connection_controller;

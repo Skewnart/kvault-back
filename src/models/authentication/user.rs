@@ -37,6 +37,14 @@ pub struct LoginDTO {
     pub password: String,
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct RegisterDTO {
+    pub username: String,
+    pub password: String,
+    pub first_name: String,
+    pub last_name: String
+}
+
 // impl LoginDTO {
 //     pub fn new (username: String, password: String) -> Self {
 //         Self {

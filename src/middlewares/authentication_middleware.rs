@@ -1,24 +1,15 @@
 use std::rc::Rc;
-use crate::authentication::other::{extract_bearer_token};
-use crate::authentication::jwt_validator::JwtValidator;
-use actix_web::{
-    dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform},
-    Error, HttpMessage, HttpResponse,
-};
+use actix_web::{dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform}, Error, HttpMessage, HttpResponse, ResponseError};
 use futures::future::{Ready};
-use std::sync::Arc;
 use actix_web::body::{EitherBody};
+use actix_web::web::Data;
 use futures_util::future::{ready, LocalBoxFuture};
+use log::info;
+use crate::errors::app_request_error::AppRequestError;
+use crate::models::authentication::token::Token;
+use crate::models::config::jwt_config::JwtConfig;
 
-pub struct AuthenticationMiddleware {
-    validator: Arc<JwtValidator>,
-}
-
-impl AuthenticationMiddleware {
-    pub fn new(validator: Arc<JwtValidator>) -> Self {
-        Self { validator }
-    }
-}
+pub struct AuthenticationMiddleware;
 
 impl<S, B> Transform<S, ServiceRequest> for AuthenticationMiddleware
 where
@@ -34,15 +25,13 @@ where
 
     fn new_transform(&self, service: S) -> Self::Future {
          ready(Ok(AuthenticationMiddlewareService {
-            service: Rc::new(service),
-            validator: self.validator.clone(),
+            service: Rc::new(service)
         }))
     }
 }
 
 pub struct AuthenticationMiddlewareService<S> {
-    service: Rc<S>,
-    validator: Arc<JwtValidator>,
+    service: Rc<S>
 }
 
 impl<S, B> Service<ServiceRequest> for AuthenticationMiddlewareService<S>
@@ -58,28 +47,43 @@ where
     forward_ready!(service);
 
     fn call(&self, req: ServiceRequest) -> Self::Future {
-        let validator = self.validator.clone();
-        let service = self.service.clone();
+        info!("MIDDLEWARE AUTHENTICATION");
 
+        let service = self.service.clone();
         Box::pin(async move {
+
+            let jwt_keys = match req.request().app_data::<Data<JwtConfig>>() {
+                Some(jwt_keys) => jwt_keys,
+                None => return {
+                    Ok(req.into_response(
+                        HttpResponse::InternalServerError()
+                        .json(serde_json::json!({ "error": "Error from RSA keys" }))
+                        .map_into_right_body(),
+                    ))
+                }
+            };
+
             let authorization = req
                 .headers()
                 .get("authorization")
                 .and_then(|h| h.to_str().ok());
 
-            match extract_bearer_token(authorization)
-                .and_then(|token| validator.validate_jwt(token))
+            match Token::extract_bearer(authorization)
+                .and_then(|token| Token::decode(token, jwt_keys.pk.clone())
+                    .map_err(|_err| AppRequestError::InternalTokenError(_err.to_string())))
+                .and_then(Token::verify)
             {
-                Ok(auth_info) => {
+                Ok(token) => {
                     // Store auth info in request extensions for generic use
-                    req.extensions_mut().insert(auth_info);
+                    req.extensions_mut().insert(token);
+
+                    info!("MIDDLEWARE AUTHENTICATION OK");
                     let res = service.call(req).await?;
                     Ok(res.map_into_left_body())
                 }
                 Err(e) => {
                     Ok(req.into_response(
-                        HttpResponse::Unauthorized()
-                            .json(serde_json::json!({ "error": e.message }))
+                        e.error_response()
                             .map_into_right_body(),
                     ))
                 }

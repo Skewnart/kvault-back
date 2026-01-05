@@ -15,7 +15,7 @@ where
     B: actix_web::body::MessageBody + std::fmt::Debug + 'static,
 {
     type Response = ServiceResponse<B>;
-    type Error = actix_web::Error;
+    type Error = Error;
     type Transform = ErrorLoggerMiddlewareService<S>;
     type InitError = ();
     type Future = Ready<Result<Self::Transform, Self::InitError>>;

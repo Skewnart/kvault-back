@@ -1,7 +1,6 @@
 use actix_web::{HttpResponse, web};
 use log::info;
-
-use crate::errors::common_error::CommonErrors;
+use crate::errors::app_request_error::AppRequestError;
 
 const ENDPOINT: &str = "/infos";
 const ENDPOINT_VERSION: &str = "/version";
@@ -13,13 +12,14 @@ pub fn configure(cfg: &mut web::ServiceConfig) {
     );
 }
 
-async fn get_version() -> Result<HttpResponse, CommonErrors> {
+async fn get_version() -> Result<HttpResponse, AppRequestError> {
     info!("/GET version");
 
     const CARGO_VERSION: &str = "CARGO_PKG_VERSION";
 
     let version =
-        std::env::var(CARGO_VERSION).map_err(|err| CommonErrors::RuntimeError(err.to_string()))?;
+        std::env::var(CARGO_VERSION)
+            .map_err(AppRequestError::InternalEnvVarError)?;
 
     Ok(HttpResponse::Ok().body(version))
 }

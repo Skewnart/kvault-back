@@ -10,8 +10,7 @@ use confik::{Configuration as _, EnvSource};
 use log::{error, info};
 use tokio_postgres::NoTls;
 use crate::middlewares::error_logger_middleware::ErrorLoggerMiddleware;
-use crate::models::authentication::jwt_keys::JwtKeys;
-use self::controllers::{infos_controller, user_controller, login_controller};
+use self::controllers::{infos_controller, profile_controller, connection_controller};
 use self::models::config::env_config::EnvConfig;
 
 #[actix_web::main]
@@ -36,7 +35,7 @@ async fn main() -> std::io::Result<()> {
         }
     }
 
-    let jwt_keys = web::Data::new(JwtKeys::new());
+    let jwt_config = web::Data::new(config.jwt);
 
     info!("Port externe de l'application : {port}");
 
@@ -45,9 +44,9 @@ async fn main() -> std::io::Result<()> {
             web::scope("/api")
                 .wrap(ErrorLoggerMiddleware)
                 .app_data(web::ThinData(pool.clone()))
-                .app_data(web::Data::clone(&jwt_keys))
-                .configure(login_controller::configure)
-                .configure(user_controller::configure)
+                .app_data(web::Data::clone(&jwt_config))
+                .configure(connection_controller::configure)
+                .configure(profile_controller::configure)
                 .configure(infos_controller::configure)
         )
     })
