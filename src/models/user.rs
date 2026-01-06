@@ -6,7 +6,7 @@ use tokio_pg_mapper_derive::PostgresMapper;
 pub struct UserProfileDto {
     pub username: String,
     pub first_name: String,
-    pub last_name: String
+    pub last_name: String,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -20,5 +20,5 @@ pub struct RegisterDTO {
     pub username: String,
     pub password: String,
     pub first_name: String,
-    pub last_name: String
+    pub last_name: String,
 }

@@ -4,13 +4,13 @@ mod middlewares;
 mod models;
 mod repository;
 
+use self::controllers::{connection_controller, infos_controller, profile_controller};
+use self::models::config::env_config::EnvConfig;
+use crate::middlewares::error_logger_middleware::ErrorLoggerMiddleware;
 use actix_web::{App, HttpServer, web};
 use confik::{Configuration as _, EnvSource};
 use log::{error, info};
 use tokio_postgres::NoTls;
-use crate::middlewares::error_logger_middleware::ErrorLoggerMiddleware;
-use self::controllers::{infos_controller, profile_controller, connection_controller};
-use self::models::config::env_config::EnvConfig;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -46,7 +46,7 @@ async fn main() -> std::io::Result<()> {
                 .app_data(web::Data::clone(&jwt_config))
                 .configure(connection_controller::configure)
                 .configure(profile_controller::configure)
-                .configure(infos_controller::configure)
+                .configure(infos_controller::configure),
         )
     })
     .bind(("0.0.0.0", port))?

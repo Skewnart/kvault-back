@@ -4,5 +4,5 @@ use confik::Configuration;
 pub struct JwtConfig {
     pub pk: String,
     pub sk: String,
-    pub ttl: i64
+    pub ttl: i64,
 }

@@ -1,6 +1,6 @@
+use crate::errors::app_request_error::AppRequestError;
 use actix_web::{HttpResponse, web};
 use log::info;
-use crate::errors::app_request_error::AppRequestError;
 
 const ENDPOINT: &str = "/infos";
 const ENDPOINT_VERSION: &str = "/version";
@@ -17,9 +17,7 @@ async fn get_version() -> Result<HttpResponse, AppRequestError> {
 
     const CARGO_VERSION: &str = "CARGO_PKG_VERSION";
 
-    let version =
-        std::env::var(CARGO_VERSION)
-            .map_err(AppRequestError::InternalEnvVarError)?;
+    let version = std::env::var(CARGO_VERSION).map_err(AppRequestError::InternalEnvVarError)?;
 
     Ok(HttpResponse::Ok().body(version))
 }
