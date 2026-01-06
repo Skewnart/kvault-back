@@ -1,6 +1,5 @@
-use actix_web::{HttpResponse, ResponseError};
 use deadpool_postgres::PoolError;
-use derive_more::{Display, Error, From};
+use derive_more::{Display, From};
 use tokio_pg_mapper::Error as PGMError;
 use tokio_postgres::error::Error as PGError;
 
@@ -11,18 +10,4 @@ pub enum DbError {
     PGMError(PGMError),
     PoolError(PoolError),
     StatementError(String),
-}
-
-impl ResponseError for DbError {
-    fn error_response(&self) -> HttpResponse {
-        match *self {
-            DbError::NotFound => HttpResponse::NotFound().finish(),
-            DbError::PGError(ref err) => HttpResponse::InternalServerError().body(err.to_string()),
-            DbError::PGMError(ref err) => HttpResponse::InternalServerError().body(err.to_string()),
-            DbError::PoolError(ref err) => {
-                HttpResponse::InternalServerError().body(err.to_string())
-            },
-            DbError::StatementError(ref err) => HttpResponse::InternalServerError().body(err.clone())
-        }
-    }
 }

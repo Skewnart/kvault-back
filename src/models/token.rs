@@ -94,10 +94,10 @@ impl FromRequest for Token {
     type Error = actix_web::Error;
     type Future = futures::future::Ready<Result<Self, Self::Error>>;
 
-    fn from_request(req: &HttpRequest, payload: &mut Payload) -> Self::Future {
+    fn from_request(req: &HttpRequest, _: &mut Payload) -> Self::Future {
         match req.extensions().get::<Token>() {
             Some(token) => ok(token.clone()),
-            None => err(actix_web::error::ErrorBadRequest("ups..."))
+            None => err(actix_web::error::ErrorBadRequest("Token should be here"))
         }
     }
 }

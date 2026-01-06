@@ -6,7 +6,7 @@ use actix_web::web::Data;
 use futures_util::future::{ready, LocalBoxFuture};
 use log::info;
 use crate::errors::app_request_error::AppRequestError;
-use crate::models::authentication::token::Token;
+use crate::models::token::Token;
 use crate::models::config::jwt_config::JwtConfig;
 
 pub struct AuthenticationMiddleware;

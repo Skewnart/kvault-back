@@ -6,8 +6,8 @@ use tokio_pg_mapper::FromTokioPostgresRow;
 use tokio_postgres::Row;
 use crate::{errors::db_error::DbError};
 use crate::errors::app_request_error::AppRequestError;
-use crate::models::authentication::user::{LoginDTO, RegisterDTO};
-use crate::models::db::user::UserProfileDto;
+use crate::models::user::{LoginDTO, RegisterDTO};
+use crate::models::user::UserProfileDto;
 
 pub async fn get_by_id(client: &Client, user_id: i64) -> Result<UserProfileDto, DbError> {
     let stmt = include_str!("sql/users/get_by_id.sql");

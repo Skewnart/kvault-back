@@ -4,7 +4,7 @@ use deadpool_postgres::{Client, Pool};
 use log::{info};
 use crate::errors::app_request_error::AppRequestError;
 use crate::middlewares::authentication_middleware::AuthenticationMiddleware;
-use crate::models::authentication::token::Token;
+use crate::models::token::Token;
 
 const ENDPOINT: &str = "/profile";
 

@@ -3,7 +3,6 @@ mod errors;
 mod middlewares;
 mod models;
 mod repository;
-mod authentication;
 
 use actix_web::{App, HttpServer, web};
 use confik::{Configuration as _, EnvSource};

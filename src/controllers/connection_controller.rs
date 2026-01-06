@@ -4,8 +4,8 @@ use actix_web::web::Data;
 use deadpool_postgres::{Client, Pool};
 use log::{info};
 use crate::errors::app_request_error::AppRequestError;
-use crate::models::authentication::token::Token;
-use crate::models::authentication::user::{LoginDTO, RegisterDTO};
+use crate::models::token::Token;
+use crate::models::user::{LoginDTO, RegisterDTO};
 use crate::models::config::jwt_config::JwtConfig;
 
 const ENDPOINT: &str = "/connection";
