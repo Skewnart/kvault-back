@@ -2,14 +2,12 @@
 
 [![build status](https://img.shields.io/github/actions/workflow/status/skewnart/kvault-back/build_test.yml)](https://github.com/skewnart/kvault-back/actions)
 
-K-Vault README file will come with its 1st major version.
+K-Vault README file will come with its 1st major version.<br>
 See you soon !
 
 ## .env file
 
-Waiting for the README file, I need to write down the .env file structure here, because the application needs some env inputs in order to work.
-
-The following inputs are exhaustive :
+Following inputs are exhaustive :
 
 ```
 # Server
@@ -23,8 +21,19 @@ DATABASE__PORT=5432
 DATABASE__DBNAME=db_name
 DATABASE__POOL_MAX_SIZE=16
 
+# RSA KEYS
+JWT__SK=base_64_utf8_encoded_RSA_256_secret_key
+JWT__PK=base_64_utf8_encoded_RSA_256_public_key
+JWT__TTL=ttl_in_seconds
+
 # Log level
 RUST_LOG= TRACE|DEBUG|INFO|WARN|ERROR
 ```
 
-This needs to be in a ".env" file (it's its full name)
+## JWT
+
+JWT generation needs a RSA-256 public and private (secret) keys in the .env file in order to work.<br>
+Please be aware that encryption keys **_NEED TO_** be rotated regularly.
+
+In this version, encryption keys are stored in the .env file and the application needs to restart to reload them.<br>
+One day they will be stored outside and hot-reloaded to allow you to automate the rotation.
