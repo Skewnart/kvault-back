@@ -4,16 +4,13 @@ mod middlewares;
 mod models;
 mod repository;
 
+use self::controllers::{connection_controller, infos_controller, profile_controller};
+use self::models::config::env_config::EnvConfig;
+use crate::middlewares::error_logger_middleware::ErrorLoggerMiddleware;
 use actix_web::{App, HttpServer, web};
-
 use confik::{Configuration as _, EnvSource};
 use log::{error, info};
 use tokio_postgres::NoTls;
-
-use self::middlewares::error_logger::ErrorLogger;
-
-use self::controllers::{infos_controller, user_controller};
-use self::models::config::env_config::EnvConfig;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -37,14 +34,18 @@ async fn main() -> std::io::Result<()> {
         }
     }
 
+    let jwt_config = web::Data::new(config.jwt);
+
     info!("Port externe de l'application : {port}");
 
     HttpServer::new(move || {
         App::new().service(
             web::scope("/api")
-                .wrap(ErrorLogger)
+                .wrap(ErrorLoggerMiddleware)
                 .app_data(web::ThinData(pool.clone()))
-                .configure(user_controller::configure)
+                .app_data(web::Data::clone(&jwt_config))
+                .configure(connection_controller::configure)
+                .configure(profile_controller::configure)
                 .configure(infos_controller::configure),
         )
     })
