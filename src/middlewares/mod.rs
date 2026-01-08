@@ -1,1 +1,2 @@
-pub mod error_logger;
+pub mod authentication_middleware;
+pub mod error_logger_middleware;
