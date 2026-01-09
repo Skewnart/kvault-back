@@ -9,7 +9,7 @@ use actix_web::{
 };
 use futures::future::Ready;
 use futures_util::future::{LocalBoxFuture, ready};
-use log::info;
+use log::{error, info};
 use std::rc::Rc;
 
 pub struct AuthenticationMiddleware;
@@ -50,8 +50,6 @@ where
     forward_ready!(service);
 
     fn call(&self, req: ServiceRequest) -> Self::Future {
-        info!("MIDDLEWARE AUTHENTICATION");
-
         let service = self.service.clone();
         Box::pin(async move {
             let jwt_keys = match req.request().app_data::<Data<JwtConfig>>() {
@@ -87,7 +85,10 @@ where
                     let res = service.call(req).await?;
                     Ok(res.map_into_left_body())
                 }
-                Err(e) => Ok(req.into_response(e.error_response().map_into_right_body())),
+                Err(e) => {
+                    error!("MIDDLEWARE AUTHENTICATION KO");
+                    Ok(req.into_response(e.error_response().map_into_right_body()))
+                },
             }
         })
     }
