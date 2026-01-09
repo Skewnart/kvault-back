@@ -13,11 +13,14 @@ use log::info;
 
 const ENDPOINT: &str = "/connection";
 
+const ENDPOINT_LOGIN: &str = "/login";
+const ENDPOINT_REGISTER: &str = "/register";
+
 pub fn configure(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope(ENDPOINT)
-            .service(web::resource("login").route(web::post().to(login)))
-            .service(web::resource("register").route(web::post().to(register))),
+            .service(web::resource(ENDPOINT_LOGIN).route(web::post().to(login)))
+            .service(web::resource(ENDPOINT_REGISTER).route(web::post().to(register))),
     );
 }
 

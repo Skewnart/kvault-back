@@ -1,6 +1,6 @@
 use crate::errors::app_request_error::AppRequestError;
 use crate::errors::db_error::DbError;
-use crate::models::user::UserProfileDto;
+use crate::models::user::UserProfileDTO;
 use crate::models::user::{LoginDTO, RegisterDTO};
 use argon2::password_hash::SaltString;
 use argon2::password_hash::rand_core::OsRng;
@@ -9,7 +9,7 @@ use deadpool_postgres::Client;
 use tokio_pg_mapper::FromTokioPostgresRow;
 use tokio_postgres::Row;
 
-pub async fn get_by_id(client: &Client, user_id: i64) -> Result<UserProfileDto, DbError> {
+pub async fn get_by_id(client: &Client, user_id: i64) -> Result<UserProfileDTO, DbError> {
     let stmt = include_str!("sql/users/get_by_id.sql");
     let stmt = client.prepare(&stmt).await?;
 
@@ -17,8 +17,8 @@ pub async fn get_by_id(client: &Client, user_id: i64) -> Result<UserProfileDto, 
         .query(&stmt, &[&user_id])
         .await?
         .iter()
-        .map(|row| UserProfileDto::from_row_ref(row).unwrap())
-        .collect::<Vec<UserProfileDto>>()
+        .map(|row| UserProfileDTO::from_row_ref(row).unwrap())
+        .collect::<Vec<UserProfileDTO>>()
         .pop()
         .ok_or(DbError::NotFound)?;
 
