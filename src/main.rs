@@ -11,6 +11,7 @@ use actix_web::{App, HttpServer, web};
 use confik::{Configuration as _, EnvSource};
 use log::{error, info};
 use tokio_postgres::NoTls;
+use crate::controllers::folder_controller;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -46,6 +47,7 @@ async fn main() -> std::io::Result<()> {
                 .app_data(web::Data::clone(&jwt_config))
                 .configure(connection_controller::configure)
                 .configure(profile_controller::configure)
+                .configure(folder_controller::configure)
                 .configure(infos_controller::configure),
         )
     })
