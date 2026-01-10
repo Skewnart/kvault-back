@@ -7,11 +7,11 @@ pub async fn get_all_by_user_id(
     client: &Client,
     user_id: i64,
 ) -> Result<Vec<AllFolderDTO>, DbError> {
-    let stmt = include_str!("sql/folder/get_all_by_user_id.sql");
-    let stmt = client.prepare(&stmt).await?;
+    let _stmt = include_str!("sql/folder/get_all_by_user_id.sql");
+    let _stmt = client.prepare(_stmt).await?;
 
     let folders = client
-        .query(&stmt, &[&user_id])
+        .query(&_stmt, &[&user_id])
         .await?
         .iter()
         .map(|row| AllFolderDTO::from_row_ref(row).unwrap())
@@ -25,11 +25,11 @@ pub async fn get_one_by_id_user_id(
     folder_id: i64,
     user_id: i64,
 ) -> Result<SingleFolderDTO, DbError> {
-    let stmt = include_str!("sql/folder/get_one_by_id_user_id.sql");
-    let stmt = client.prepare(&stmt).await?;
+    let _stmt = include_str!("sql/folder/get_one_by_id_user_id.sql");
+    let _stmt = client.prepare(_stmt).await?;
 
     let folders = client
-        .query(&stmt, &[&folder_id, &user_id])
+        .query(&_stmt, &[&folder_id, &user_id])
         .await?
         .iter()
         .map(|row| SingleFolderDTO::from_row_ref(row).unwrap())
@@ -46,10 +46,10 @@ pub async fn insert(
     user_id: i64,
 ) -> Result<i64, DbError> {
     let _stmt = include_str!("./sql/folder/insert.sql");
-    let stmt = client.prepare(&_stmt).await?;
+    let _stmt = client.prepare(_stmt).await?;
 
     client
-        .query(&stmt, &[&insert_folder_dto.name, &user_id])
+        .query(&_stmt, &[&insert_folder_dto.name, &user_id])
         .await?
         .iter()
         .map(|row| row.get(0))
@@ -65,10 +65,10 @@ pub async fn update(
     user_id: i64,
 ) -> Result<(), DbError> {
     let _stmt = include_str!("./sql/folder/update.sql");
-    let stmt = client.prepare(&_stmt).await?;
+    let _stmt = client.prepare(_stmt).await?;
 
     client
-        .query(&stmt, &[&update_folder_dto.name, &id, &user_id])
+        .query(&_stmt, &[&update_folder_dto.name, &id, &user_id])
         .await?
         .iter()
         .map(|row| row.get(0))
@@ -81,10 +81,10 @@ pub async fn update(
 
 pub async fn delete(client: &Client, id: i64, user_id: i64) -> Result<(), DbError> {
     let _stmt = include_str!("./sql/folder/delete.sql");
-    let stmt = client.prepare(&_stmt).await?;
+    let _stmt = client.prepare(_stmt).await?;
 
     client
-        .query(&stmt, &[&id, &user_id])
+        .query(&_stmt, &[&id, &user_id])
         .await?
         .iter()
         .map(|row| row.get(0))
