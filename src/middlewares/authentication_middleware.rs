@@ -88,7 +88,7 @@ where
                 Err(e) => {
                     error!("MIDDLEWARE AUTHENTICATION KO");
                     Ok(req.into_response(e.error_response().map_into_right_body()))
-                },
+                }
             }
         })
     }

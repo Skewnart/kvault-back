@@ -18,3 +18,8 @@ pub struct SingleFolderDTO {
 pub struct InsertFolderDTO {
     pub name: String,
 }
+
+#[derive(Serialize, Deserialize)]
+pub struct UpdateFolderDTO {
+    pub name: String,
+}

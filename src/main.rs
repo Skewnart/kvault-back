@@ -6,12 +6,12 @@ mod repository;
 
 use self::controllers::{connection_controller, infos_controller, profile_controller};
 use self::models::config::env_config::EnvConfig;
+use crate::controllers::folder_controller;
 use crate::middlewares::error_logger_middleware::ErrorLoggerMiddleware;
 use actix_web::{App, HttpServer, web};
 use confik::{Configuration as _, EnvSource};
 use log::{error, info};
 use tokio_postgres::NoTls;
-use crate::controllers::folder_controller;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {

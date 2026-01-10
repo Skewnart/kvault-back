@@ -1,23 +1,17 @@
 use crate::errors::app_request_error::AppRequestError;
-use crate::middlewares::authentication_middleware::AuthenticationMiddleware;
-use crate::models::token::Token;
 use crate::errors::db_error::DbError;
+use crate::middlewares::authentication_middleware::AuthenticationMiddleware;
+use crate::models::folder::{InsertFolderDTO, UpdateFolderDTO};
+use crate::models::token::Token;
+use crate::repository::folder_repository;
 use actix_web::{
     HttpResponse,
     web::{self, ThinData},
 };
 use deadpool_postgres::{Client, Pool};
 use log::info;
-use crate::models::folder::InsertFolderDTO;
-use crate::repository::folder_repository;
 
 const ENDPOINT: &str = "/folder";
-
-// . GET /folder
-// . POST /folder
-// . GET /folder/$id
-// PUT /folder/$id
-// DELETE /folder/$id
 
 pub fn configure(cfg: &mut web::ServiceConfig) {
     cfg.service(
@@ -30,9 +24,9 @@ pub fn configure(cfg: &mut web::ServiceConfig) {
             )
             .service(
                 web::resource("/{id}")
-                    .route(web::get().to(get_one)),
-                // .route(web::put().to(put_one))
-                // .route(web::delete().to(delete_one))
+                    .route(web::get().to(get_one))
+                    .route(web::put().to(put_one))
+                    .route(web::delete().to(delete_one)),
             ),
     );
 }
@@ -80,7 +74,7 @@ async fn post_one(
 async fn get_one(
     ThinData(db_pool): ThinData<Pool>,
     token: Token,
-    id: web::Path<i64>
+    id: web::Path<i64>,
 ) -> Result<HttpResponse, AppRequestError> {
     info!("/GET folder/{id}");
 
@@ -91,9 +85,53 @@ async fn get_one(
         .map_err(AppRequestError::InternalDbError)?;
 
     let id = id.into_inner();
-    let folders = folder_repository::get_one_by_id_user_id(&client, id, token.sub)
+    let folder = folder_repository::get_one_by_id_user_id(&client, id, token.sub)
         .await
         .map_err(AppRequestError::InternalDbError)?;
 
-    Ok(HttpResponse::Ok().json(folders))
+    Ok(HttpResponse::Ok().json(folder))
+}
+
+async fn put_one(
+    update_folder_json: web::Json<UpdateFolderDTO>,
+    ThinData(db_pool): ThinData<Pool>,
+    token: Token,
+    id: web::Path<i64>,
+) -> Result<HttpResponse, AppRequestError> {
+    info!("/PUT folder/{id}");
+
+    let client: Client = db_pool
+        .get()
+        .await
+        .map_err(DbError::from)
+        .map_err(AppRequestError::InternalDbError)?;
+
+    let update_folder_dto: UpdateFolderDTO = update_folder_json.into_inner();
+    let id = id.into_inner();
+    folder_repository::update(&client, update_folder_dto, id, token.sub)
+        .await
+        .map_err(AppRequestError::InternalDbError)?;
+
+    Ok(HttpResponse::Ok().finish())
+}
+
+async fn delete_one(
+    ThinData(db_pool): ThinData<Pool>,
+    token: Token,
+    id: web::Path<i64>,
+) -> Result<HttpResponse, AppRequestError> {
+    info!("/DELETE folder/{id}");
+
+    let client: Client = db_pool
+        .get()
+        .await
+        .map_err(DbError::from)
+        .map_err(AppRequestError::InternalDbError)?;
+
+    let id = id.into_inner();
+    folder_repository::delete(&client, id, token.sub)
+        .await
+        .map_err(AppRequestError::InternalDbError)?;
+
+    Ok(HttpResponse::Ok().finish())
 }
