@@ -1,0 +1,22 @@
+meta {
+  name: PUT /
+  type: http
+  seq: 2
+}
+
+put {
+  url: {{baseurl}}{{prefixapi}}/folder/{{id}}
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "name": "Perso"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
