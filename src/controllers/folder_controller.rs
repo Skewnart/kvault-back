@@ -112,7 +112,7 @@ async fn put_one(
         .await
         .map_err(AppRequestError::InternalDbError)?;
 
-    Ok(HttpResponse::Ok().finish())
+    Ok(HttpResponse::NoContent().finish())
 }
 
 async fn delete_one(
@@ -133,5 +133,5 @@ async fn delete_one(
         .await
         .map_err(AppRequestError::InternalDbError)?;
 
-    Ok(HttpResponse::Ok().finish())
+    Ok(HttpResponse::NoContent().finish())
 }

@@ -73,7 +73,7 @@ where
             match Token::extract_bearer(authorization)
                 .and_then(|token| {
                     Token::decode(token, jwt_keys.pk.clone())
-                        .map_err(|_err| AppRequestError::InternalTokenError(_err.to_string()))
+                        .map_err(|_err| AppRequestError::Unauthorized(_err.to_string()))
                 })
                 .and_then(Token::verify)
             {

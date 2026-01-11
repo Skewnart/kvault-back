@@ -43,7 +43,8 @@ pub async fn login(client: &Client, login_dto: LoginDTO) -> Result<i64, AppReque
         .iter()
         .collect::<Vec<&Row>>()
         .pop()
-        .ok_or(AppRequestError::NotFound)?;
+        .ok_or(DbError::NotFound)
+        .map_err(AppRequestError::InternalDbError)?;
 
     if login_dto.password.is_empty() {
         return Ok(0);
