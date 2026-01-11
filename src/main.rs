@@ -6,6 +6,7 @@ mod repository;
 
 use self::controllers::{connection_controller, infos_controller, profile_controller};
 use self::models::config::env_config::EnvConfig;
+use crate::controllers::folder_controller;
 use crate::middlewares::error_logger_middleware::ErrorLoggerMiddleware;
 use actix_web::{App, HttpServer, web};
 use confik::{Configuration as _, EnvSource};
@@ -46,6 +47,7 @@ async fn main() -> std::io::Result<()> {
                 .app_data(web::Data::clone(&jwt_config))
                 .configure(connection_controller::configure)
                 .configure(profile_controller::configure)
+                .configure(folder_controller::configure)
                 .configure(infos_controller::configure),
         )
     })
