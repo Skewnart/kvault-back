@@ -1,7 +1,7 @@
 use crate::errors::app_request_error::AppRequestError;
 use crate::errors::db_error::DbError;
 use crate::middlewares::authentication_middleware::AuthenticationMiddleware;
-use crate::models::folder::{InsertFolderDTO, UpdateFolderDTO};
+use crate::models::folder::{InsertFolderInputDTO, UpdateFolderInputDTO};
 use crate::models::token::Token;
 use crate::repository::folder_repository;
 use actix_web::{
@@ -51,13 +51,13 @@ async fn get_all(
 }
 
 async fn post_one(
-    insert_folder_json: web::Json<InsertFolderDTO>,
+    insert_folder_json: web::Json<InsertFolderInputDTO>,
     token: Token,
     ThinData(db_pool): ThinData<Pool>,
 ) -> Result<HttpResponse, AppRequestError> {
     info!("/POST folder");
 
-    let insert_folder_dto: InsertFolderDTO = insert_folder_json.into_inner();
+    let insert_folder_dto: InsertFolderInputDTO = insert_folder_json.into_inner();
     let db_client: Client = db_pool
         .get()
         .await
@@ -93,7 +93,7 @@ async fn get_one(
 }
 
 async fn put_one(
-    update_folder_json: web::Json<UpdateFolderDTO>,
+    update_folder_json: web::Json<UpdateFolderInputDTO>,
     ThinData(db_pool): ThinData<Pool>,
     token: Token,
     id: web::Path<i64>,
@@ -106,7 +106,7 @@ async fn put_one(
         .map_err(DbError::from)
         .map_err(AppRequestError::InternalDbError)?;
 
-    let update_folder_dto: UpdateFolderDTO = update_folder_json.into_inner();
+    let update_folder_dto: UpdateFolderInputDTO = update_folder_json.into_inner();
     let id = id.into_inner();
     folder_repository::update(&client, update_folder_dto, id, token.sub)
         .await

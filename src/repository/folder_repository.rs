@@ -1,12 +1,12 @@
 use crate::errors::db_error::DbError;
-use crate::models::folder::{AllFolderDTO, InsertFolderDTO, SingleFolderDTO, UpdateFolderDTO};
+use crate::models::folder::{FolderOutputDTO, InsertFolderInputDTO, FolderDetailOutputDTO, UpdateFolderInputDTO};
 use deadpool_postgres::Client;
 use tokio_pg_mapper::FromTokioPostgresRow;
 
 pub async fn get_all_by_user_id(
     client: &Client,
     user_id: i64,
-) -> Result<Vec<AllFolderDTO>, DbError> {
+) -> Result<Vec<FolderOutputDTO>, DbError> {
     let _stmt = include_str!("sql/folder/get_all_by_user_id.sql");
     let _stmt = client.prepare(_stmt).await?;
 
@@ -14,8 +14,8 @@ pub async fn get_all_by_user_id(
         .query(&_stmt, &[&user_id])
         .await?
         .iter()
-        .map(|row| AllFolderDTO::from_row_ref(row).unwrap())
-        .collect::<Vec<AllFolderDTO>>();
+        .map(|row| FolderOutputDTO::from_row_ref(row).unwrap())
+        .collect::<Vec<FolderOutputDTO>>();
 
     Ok(folders)
 }
@@ -24,7 +24,7 @@ pub async fn get_one_by_id_user_id(
     client: &Client,
     folder_id: i64,
     user_id: i64,
-) -> Result<SingleFolderDTO, DbError> {
+) -> Result<FolderDetailOutputDTO, DbError> {
     let _stmt = include_str!("sql/folder/get_one_by_id_user_id.sql");
     let _stmt = client.prepare(_stmt).await?;
 
@@ -32,8 +32,8 @@ pub async fn get_one_by_id_user_id(
         .query(&_stmt, &[&folder_id, &user_id])
         .await?
         .iter()
-        .map(|row| SingleFolderDTO::from_row_ref(row).unwrap())
-        .collect::<Vec<SingleFolderDTO>>()
+        .map(|row| FolderDetailOutputDTO::from_row_ref(row).unwrap())
+        .collect::<Vec<FolderDetailOutputDTO>>()
         .pop()
         .ok_or(DbError::NotFound)?;
 
@@ -42,7 +42,7 @@ pub async fn get_one_by_id_user_id(
 
 pub async fn insert(
     client: &Client,
-    insert_folder_dto: InsertFolderDTO,
+    insert_folder_dto: InsertFolderInputDTO,
     user_id: i64,
 ) -> Result<i64, DbError> {
     let _stmt = include_str!("./sql/folder/insert.sql");
@@ -60,7 +60,7 @@ pub async fn insert(
 
 pub async fn update(
     client: &Client,
-    update_folder_dto: UpdateFolderDTO,
+    update_folder_dto: UpdateFolderInputDTO,
     id: i64,
     user_id: i64,
 ) -> Result<(), DbError> {
