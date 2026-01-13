@@ -1,3 +1,4 @@
+use crate::models::entry::EntryOutputDTO;
 use serde::{Deserialize, Serialize};
 use tokio_pg_mapper_derive::PostgresMapper;
 
@@ -12,6 +13,21 @@ pub struct FolderOutputDTO {
 #[pg_mapper(table = "folders")]
 pub struct FolderDetailOutputDTO {
     pub name: String,
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct FolderDetailWithEntriesDTO {
+    pub name: String,
+    pub entries: Vec<EntryOutputDTO>,
+}
+
+impl FolderDetailWithEntriesDTO {
+    pub fn new(folder: FolderDetailOutputDTO, entries: Vec<EntryOutputDTO>) -> Self {
+        Self {
+            name: folder.name,
+            entries,
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize)]
