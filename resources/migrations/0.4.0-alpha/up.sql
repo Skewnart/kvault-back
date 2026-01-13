@@ -12,7 +12,7 @@ CREATE TABLE entries (
     "name" text NOT NULL,
     description text NULL,
     "password" text NOT NULL,
-    is_favoris boolean DEFAULT false NOT NULL,
+    is_favorite boolean DEFAULT false NOT NULL,
     folder_id bigserial NOT NULL,
     user_id bigserial NOT NULL,
     CONSTRAINT entries_pk PRIMARY KEY (id),
