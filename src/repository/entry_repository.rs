@@ -1,6 +1,7 @@
 use crate::errors::db_error::DbError;
 use crate::models::entry::{
     EntryDetailOutputDTO, EntryOutputDTO, EntryPasswordOutputDTO, InsertEntryInputDTO,
+    MoveEntryInputDTO, UpdateEntryInputDTO,
 };
 use deadpool_postgres::Client;
 use tokio_pg_mapper::FromTokioPostgresRow;
@@ -89,4 +90,72 @@ pub async fn insert(
         .collect::<Vec<i64>>()
         .pop()
         .ok_or(DbError::NotFound)
+}
+
+pub async fn update(
+    client: &Client,
+    update_entry_dto: UpdateEntryInputDTO,
+    id: i64,
+    user_id: i64,
+) -> Result<(), DbError> {
+    let _stmt = include_str!("./sql/entry/update.sql");
+    let _stmt = client.prepare(_stmt).await?;
+
+    client
+        .query(
+            &_stmt,
+            &[
+                &update_entry_dto.name,
+                &update_entry_dto.description,
+                &update_entry_dto.password,
+                &update_entry_dto.is_favorite,
+                &id,
+                &user_id,
+            ],
+        )
+        .await?
+        .iter()
+        .map(|row| row.get(0))
+        .collect::<Vec<i64>>()
+        .pop()
+        .ok_or(DbError::NotFound)?;
+
+    Ok(())
+}
+
+pub async fn move_from_folder(
+    client: &Client,
+    move_entry_dto: MoveEntryInputDTO,
+    id: i64,
+    user_id: i64,
+) -> Result<(), DbError> {
+    let _stmt = include_str!("./sql/entry/move_from_folder.sql");
+    let _stmt = client.prepare(_stmt).await?;
+
+    client
+        .query(&_stmt, &[&move_entry_dto.folder_id, &id, &user_id])
+        .await?
+        .iter()
+        .map(|row| row.get(0))
+        .collect::<Vec<i64>>()
+        .pop()
+        .ok_or(DbError::NotFound)?;
+
+    Ok(())
+}
+
+pub async fn delete(client: &Client, id: i64, user_id: i64) -> Result<(), DbError> {
+    let _stmt = include_str!("./sql/entry/delete.sql");
+    let _stmt = client.prepare(_stmt).await?;
+
+    client
+        .query(&_stmt, &[&id, &user_id])
+        .await?
+        .iter()
+        .map(|row| row.get(0))
+        .collect::<Vec<i64>>()
+        .pop()
+        .ok_or(DbError::NotFound)?;
+
+    Ok(())
 }
