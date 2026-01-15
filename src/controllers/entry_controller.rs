@@ -3,7 +3,7 @@ use crate::errors::db_error::DbError;
 use crate::middlewares::authentication_middleware::AuthenticationMiddleware;
 use crate::models::entry::{InsertEntryInputDTO, MoveEntryInputDTO, UpdateEntryInputDTO};
 use crate::models::token::Token;
-use crate::repository::{entry_repository};
+use crate::repository::entry_repository;
 use actix_web::{
     HttpResponse,
     web::{self, ThinData},
