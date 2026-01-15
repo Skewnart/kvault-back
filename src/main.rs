@@ -6,7 +6,7 @@ mod repository;
 
 use self::controllers::{connection_controller, infos_controller, profile_controller};
 use self::models::config::env_config::EnvConfig;
-use crate::controllers::folder_controller;
+use crate::controllers::{entry_controller, folder_controller};
 use crate::middlewares::error_logger_middleware::ErrorLoggerMiddleware;
 use actix_web::{App, HttpServer, web};
 use confik::{Configuration as _, EnvSource};
@@ -48,6 +48,7 @@ async fn main() -> std::io::Result<()> {
                 .configure(connection_controller::configure)
                 .configure(profile_controller::configure)
                 .configure(folder_controller::configure)
+                .configure(entry_controller::configure)
                 .configure(infos_controller::configure),
         )
     })

@@ -1,0 +1,22 @@
+meta {
+  name: PUT /move
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{baseurl}}{{prefixapi}}/entry/{{id}}/move
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "folder_id": 1
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

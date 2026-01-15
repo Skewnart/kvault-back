@@ -1,9 +1,11 @@
 use crate::errors::app_request_error::AppRequestError;
 use crate::errors::db_error::DbError;
 use crate::middlewares::authentication_middleware::AuthenticationMiddleware;
-use crate::models::folder::{InsertFolderInputDTO, UpdateFolderInputDTO};
+use crate::models::folder::{
+    FolderDetailWithEntriesDTO, InsertFolderInputDTO, UpdateFolderInputDTO,
+};
 use crate::models::token::Token;
-use crate::repository::folder_repository;
+use crate::repository::{entry_repository, folder_repository};
 use actix_web::{
     HttpResponse,
     web::{self, ThinData},
@@ -88,6 +90,12 @@ async fn get_one(
     let folder = folder_repository::get_one_by_id_user_id(&client, id, token.sub)
         .await
         .map_err(AppRequestError::InternalDbError)?;
+
+    let entries = entry_repository::get_all_by_folder_id_user_id(&client, id, token.sub)
+        .await
+        .map_err(AppRequestError::InternalDbError)?;
+
+    let folder = FolderDetailWithEntriesDTO::new(folder, entries);
 
     Ok(HttpResponse::Ok().json(folder))
 }

@@ -20,12 +20,7 @@ impl ResponseError for AppRequestError {
             AppRequestError::InternalTokenError(ref err) => {
                 HttpResponse::InternalServerError().body(err.to_string())
             }
-            AppRequestError::InternalDbError(ref err) => {
-                match err {
-                    DbError::NotFound => HttpResponse::NotFound().finish(),
-                    _ => HttpResponse::InternalServerError().body(err.to_string()),
-                }
-            }
+            AppRequestError::InternalDbError(ref err) => (*err).error_response(),
             AppRequestError::InternalEnvVarError(ref err) => {
                 HttpResponse::InternalServerError().body(err.to_string())
             }
