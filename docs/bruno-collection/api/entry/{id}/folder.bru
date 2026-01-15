@@ -1,8 +1,12 @@
 meta {
-  name: /connection
+  name: /{id}
   seq: 1
 }
 
 auth {
   mode: inherit
+}
+
+vars:pre-request {
+  id: 4
 }

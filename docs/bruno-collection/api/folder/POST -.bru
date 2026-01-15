@@ -1,0 +1,22 @@
+meta {
+  name: POST /
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseurl}}{{prefixapi}}/folder
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "name":"Perso"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

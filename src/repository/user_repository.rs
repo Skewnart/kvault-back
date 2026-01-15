@@ -1,6 +1,6 @@
 use crate::errors::app_request_error::AppRequestError;
 use crate::errors::db_error::DbError;
-use crate::models::user::UserProfileDto;
+use crate::models::user::UserProfileDTO;
 use crate::models::user::{LoginDTO, RegisterDTO};
 use argon2::password_hash::SaltString;
 use argon2::password_hash::rand_core::OsRng;
@@ -9,16 +9,16 @@ use deadpool_postgres::Client;
 use tokio_pg_mapper::FromTokioPostgresRow;
 use tokio_postgres::Row;
 
-pub async fn get_by_id(client: &Client, user_id: i64) -> Result<UserProfileDto, DbError> {
-    let stmt = include_str!("sql/users/get_by_id.sql");
-    let stmt = client.prepare(&stmt).await?;
+pub async fn get_by_id(client: &Client, user_id: i64) -> Result<UserProfileDTO, DbError> {
+    let _stmt = include_str!("sql/users/get_by_id.sql");
+    let _stmt = client.prepare(_stmt).await?;
 
     let user = client
-        .query(&stmt, &[&user_id])
+        .query(&_stmt, &[&user_id])
         .await?
         .iter()
-        .map(|row| UserProfileDto::from_row_ref(row).unwrap())
-        .collect::<Vec<UserProfileDto>>()
+        .map(|row| UserProfileDTO::from_row_ref(row).unwrap())
+        .collect::<Vec<UserProfileDTO>>()
         .pop()
         .ok_or(DbError::NotFound)?;
 
@@ -26,15 +26,15 @@ pub async fn get_by_id(client: &Client, user_id: i64) -> Result<UserProfileDto, 
 }
 
 pub async fn login(client: &Client, login_dto: LoginDTO) -> Result<i64, AppRequestError> {
-    let stmt = include_str!("./sql/users/login.sql");
-    let stmt = client
-        .prepare(&stmt)
+    let _stmt = include_str!("./sql/users/login.sql");
+    let _stmt = client
+        .prepare(_stmt)
         .await
         .map_err(DbError::from)
         .map_err(AppRequestError::InternalDbError)?;
 
     let rows = client
-        .query(&stmt, &[&login_dto.username])
+        .query(&_stmt, &[&login_dto.username])
         .await
         .map_err(DbError::PGError)
         .map_err(AppRequestError::InternalDbError)?;
@@ -43,9 +43,10 @@ pub async fn login(client: &Client, login_dto: LoginDTO) -> Result<i64, AppReque
         .iter()
         .collect::<Vec<&Row>>()
         .pop()
-        .ok_or(AppRequestError::NotFound)?;
+        .ok_or(DbError::NotFound)
+        .map_err(AppRequestError::InternalDbError)?;
 
-    if login_dto.password.len() == 0 {
+    if login_dto.password.is_empty() {
         return Ok(0);
     }
 
@@ -53,7 +54,7 @@ pub async fn login(client: &Client, login_dto: LoginDTO) -> Result<i64, AppReque
         .and_then(|parsed_hash| {
             Argon2::default().verify_password(login_dto.password.as_bytes(), &parsed_hash)
         })
-        .map_or(false, |_| true);
+        .is_ok_and(|_| true);
 
     if !password_valid {
         Err(AppRequestError::Unauthorized(
@@ -66,7 +67,7 @@ pub async fn login(client: &Client, login_dto: LoginDTO) -> Result<i64, AppReque
 
 pub async fn register(client: &Client, register_dto: RegisterDTO) -> Result<i64, DbError> {
     let _stmt = include_str!("./sql/users/insert.sql");
-    let stmt = client.prepare(&_stmt).await?;
+    let _stmt = client.prepare(_stmt).await?;
 
     let salt = SaltString::generate(&mut OsRng);
     let hashed_password = Argon2::default()
@@ -76,7 +77,7 @@ pub async fn register(client: &Client, register_dto: RegisterDTO) -> Result<i64,
 
     client
         .query(
-            &stmt,
+            &_stmt,
             &[
                 &register_dto.username,
                 &hashed_password,

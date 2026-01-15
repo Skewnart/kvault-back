@@ -1,0 +1,25 @@
+meta {
+  name: PUT /
+  type: http
+  seq: 3
+}
+
+put {
+  url: {{baseurl}}{{prefixapi}}/entry/{{id}}
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "name":"Site",
+    "description": "Site random",
+    "password": "mot de passe",
+    "is_favorite": true
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -1,0 +1,26 @@
+meta {
+  name: POST /
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseurl}}{{prefixapi}}/entry
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "name":"Site exemple",
+    "description": "Le site exemple",
+    "password": "mot de passe",
+    "is_favorite": false,
+    "folder_id": 1
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
