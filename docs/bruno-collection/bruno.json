@@ -6,10 +6,10 @@
     "node_modules",
     ".git"
   ],
-  "size": 0.002826690673828125,
-  "filesCount": 20,
+  "size": 0.004910469055175781,
+  "filesCount": 34,
   "presets": {
     "requestType": "http",
-    "requestUrl": "{{baseurl}}{{prefixapi}}/"
+    "requestUrl": "{{baseurl}}/"
   }
 }
