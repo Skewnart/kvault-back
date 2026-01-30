@@ -7,6 +7,7 @@ mod repository;
 use self::controllers::{connection_controller, infos_controller, profile_controller};
 use self::models::config::env_config::EnvConfig;
 use crate::controllers::{entry_controller, folder_controller};
+use crate::middlewares::cors_impl::CorsImpl;
 use crate::middlewares::error_logger_middleware::ErrorLoggerMiddleware;
 use actix_web::{App, HttpServer, web};
 use confik::{Configuration as _, EnvSource};
@@ -43,6 +44,7 @@ async fn main() -> std::io::Result<()> {
         App::new().service(
             web::scope("/api")
                 .wrap(ErrorLoggerMiddleware)
+                .wrap(CorsImpl::get_default())
                 .app_data(web::ThinData(pool.clone()))
                 .app_data(web::Data::clone(&jwt_config))
                 .configure(connection_controller::configure)
