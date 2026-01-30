@@ -40,7 +40,7 @@ async fn login(
     let user_id = user_repository::login(&db_client, login_dto).await?;
 
     if user_id == 0 {
-        return Ok(HttpResponse::Ok().finish());
+        return Ok(HttpResponse::NoContent().finish());
     }
 
     let token = Token::generate(user_id, jwt_config.ttl);
