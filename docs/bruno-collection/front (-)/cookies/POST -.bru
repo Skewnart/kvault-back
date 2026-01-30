@@ -1,0 +1,24 @@
+meta {
+  name: POST /
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseurl}}/cookies
+  body: formUrlEncoded
+  auth: inherit
+}
+
+body:text {
+  token=qsd
+}
+
+body:form-urlencoded {
+  token: TOKEN ICI
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
