@@ -1,5 +1,3 @@
-SELECT first_name,
-       last_name,
-       username
+SELECT username
 FROM users
 WHERE id = $1;

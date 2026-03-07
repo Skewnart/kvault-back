@@ -81,8 +81,6 @@ pub async fn register(client: &Client, register_dto: RegisterDTO) -> Result<i64,
             &[
                 &register_dto.username,
                 &hashed_password,
-                &register_dto.first_name,
-                &register_dto.last_name,
             ],
         )
         .await?
