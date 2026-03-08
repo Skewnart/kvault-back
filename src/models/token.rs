@@ -1,4 +1,5 @@
 use crate::errors::app_request_error::AppRequestError;
+use crate::models::user::UserType;
 use actix_web::dev::Payload;
 use actix_web::{FromRequest, HttpMessage, HttpRequest};
 use base64::Engine;
@@ -11,16 +12,23 @@ use std::error::Error;
 use uuid::Uuid;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct TokenInfos {
+    pub user_id: i64,
+    pub user_type: UserType,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Token {
     pub sub: i64,
     pub token_uuid: String,
     pub exp: i64,
     pub iat: i64,
     pub nbf: i64,
+    pub infos: TokenInfos,
 }
 
 impl Token {
-    pub fn generate(user_id: i64, ttl: i64) -> Self {
+    pub fn generate(user_id: i64, user_type: UserType, ttl: i64) -> Self {
         let now = Utc::now();
 
         Self {
@@ -29,6 +37,7 @@ impl Token {
             exp: (now + chrono::Duration::seconds(ttl)).timestamp(),
             iat: now.timestamp(),
             nbf: now.timestamp(),
+            infos: TokenInfos { user_id, user_type },
         }
     }
 

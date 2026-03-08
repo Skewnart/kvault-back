@@ -37,13 +37,13 @@ async fn login(
         .await
         .map_err(DbError::PoolError)
         .map_err(AppRequestError::InternalDbError)?;
-    let user_id = user_repository::login(&db_client, login_dto).await?;
+    let (user_id, user_type) = user_repository::login(&db_client, login_dto).await?;
 
     if user_id == 0 {
         return Ok(HttpResponse::NoContent().finish());
     }
 
-    let token = Token::generate(user_id, jwt_config.ttl);
+    let token = Token::generate(user_id, user_type, jwt_config.ttl);
     let encoded_token = token
         .encode(jwt_config.sk.clone())
         .map_err(|_err| AppRequestError::InternalTokenError(_err.to_string()))?;

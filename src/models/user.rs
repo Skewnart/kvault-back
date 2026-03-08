@@ -18,3 +18,23 @@ pub struct RegisterDTO {
     pub username: String,
     pub password: String,
 }
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+pub enum UserType {
+    USER,
+    ADMIN,
+}
+
+impl UserType {
+    pub fn from(user: String) -> Option<Self> {
+        match user.as_str() {
+            "USER" => Some(UserType::USER),
+            "ADMIN" => Some(UserType::ADMIN),
+            _ => None,
+        }
+    }
+
+    pub fn is_admin(&self) -> bool {
+        self == &UserType::ADMIN
+    }
+}

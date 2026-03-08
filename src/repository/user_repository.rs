@@ -1,7 +1,7 @@
 use crate::errors::app_request_error::AppRequestError;
 use crate::errors::db_error::DbError;
-use crate::models::user::UserProfileDTO;
 use crate::models::user::{LoginDTO, RegisterDTO};
+use crate::models::user::{UserProfileDTO, UserType};
 use argon2::password_hash::SaltString;
 use argon2::password_hash::rand_core::OsRng;
 use argon2::{Argon2, PasswordHash, PasswordHasher, PasswordVerifier};
@@ -25,7 +25,10 @@ pub async fn get_by_id(client: &Client, user_id: i64) -> Result<UserProfileDTO, 
     Ok(user)
 }
 
-pub async fn login(client: &Client, login_dto: LoginDTO) -> Result<i64, AppRequestError> {
+pub async fn login(
+    client: &Client,
+    login_dto: LoginDTO,
+) -> Result<(i64, UserType), AppRequestError> {
     let _stmt = include_str!("./sql/users/login.sql");
     let _stmt = client
         .prepare(_stmt)
@@ -47,10 +50,14 @@ pub async fn login(client: &Client, login_dto: LoginDTO) -> Result<i64, AppReque
         .map_err(AppRequestError::InternalDbError)?;
 
     if login_dto.password.is_empty() {
-        return Ok(0);
+        return Ok((0, UserType::USER));
     }
 
-    let password_valid = PasswordHash::new(row.get(1))
+    let user_type = UserType::from(row.get(1)).ok_or(AppRequestError::InternalTokenError(
+        String::from("Type user inconnu"),
+    ))?;
+
+    let password_valid = PasswordHash::new(row.get(2))
         .and_then(|parsed_hash| {
             Argon2::default().verify_password(login_dto.password.as_bytes(), &parsed_hash)
         })
@@ -62,7 +69,7 @@ pub async fn login(client: &Client, login_dto: LoginDTO) -> Result<i64, AppReque
         ))?;
     }
 
-    Ok(row.get(0))
+    Ok((row.get(0), user_type))
 }
 
 pub async fn register(client: &Client, register_dto: RegisterDTO) -> Result<i64, DbError> {
@@ -76,13 +83,7 @@ pub async fn register(client: &Client, register_dto: RegisterDTO) -> Result<i64,
         .to_string();
 
     client
-        .query(
-            &_stmt,
-            &[
-                &register_dto.username,
-                &hashed_password,
-            ],
-        )
+        .query(&_stmt, &[&register_dto.username, &hashed_password])
         .await?
         .iter()
         .map(|row| row.get(0))
