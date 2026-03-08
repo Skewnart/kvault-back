@@ -1,7 +1,9 @@
 use crate::errors::app_request_error::AppRequestError;
+use crate::middlewares::authentication_middleware::AuthenticationMiddleware;
 use crate::models::config::jwt_config::JwtConfig;
 use crate::models::token::Token;
 use crate::models::user::{LoginDTO, RegisterDTO};
+use crate::repository::invitation_repository;
 use crate::{errors::db_error::DbError, repository::user_repository};
 use actix_web::web::Data;
 use actix_web::{
@@ -15,12 +17,26 @@ const ENDPOINT: &str = "/connection";
 
 const ENDPOINT_LOGIN: &str = "/login";
 const ENDPOINT_REGISTER: &str = "/register";
+const ENDPOINT_REGISTER_INVITATIONS: &str = "/invitations";
+
+// POST connection/login : Login
+// GET connection/register/invitations : GET all invitations
+// POST connection/register/invitations : new invitation
+// POST connection/register/{guid} : use invitation
 
 pub fn configure(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope(ENDPOINT)
             .service(web::resource(ENDPOINT_LOGIN).route(web::post().to(login)))
-            .service(web::resource(ENDPOINT_REGISTER).route(web::post().to(register))),
+            .service(
+                web::scope(ENDPOINT_REGISTER)
+                    .service(
+                        web::resource(ENDPOINT_REGISTER_INVITATIONS)
+                            .wrap(AuthenticationMiddleware)
+                            .route(web::get().to(get_invitations)), // .route(web::post().to(post_invitation)),
+                    )
+                    .service(web::resource("{guid}").route(web::post().to(register))),
+            ),
     );
 }
 
@@ -51,9 +67,38 @@ async fn login(
     Ok(HttpResponse::Ok().body(encoded_token))
 }
 
+async fn get_invitations(
+    ThinData(db_pool): ThinData<Pool>,
+    token: Token,
+) -> Result<HttpResponse, AppRequestError> {
+    info!("/GET register/invitations");
+
+    if !token.infos.user_type.is_admin() {
+        return Err(AppRequestError::Forbidden(String::from(
+            "User is not admin",
+        )));
+    }
+
+    let db_client: Client = db_pool
+        .get()
+        .await
+        .map_err(DbError::PoolError)
+        .map_err(AppRequestError::InternalDbError)?;
+
+    let invitations = invitation_repository::get_all(&db_client)
+        .await
+        .map_err(AppRequestError::InternalDbError)?;
+
+    let invitations =
+        serde_json::to_string(&invitations).map_err(AppRequestError::InternalSerializationError)?;
+
+    Ok(HttpResponse::Ok().body(invitations))
+}
+
 async fn register(
     register_json: web::Json<RegisterDTO>,
     ThinData(db_pool): ThinData<Pool>,
+    guid: web::Path<String>,
 ) -> Result<HttpResponse, AppRequestError> {
     info!("/POST register");
 
