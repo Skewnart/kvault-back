@@ -5,7 +5,7 @@ use crate::models::config::jwt_config::JwtConfig;
 use crate::models::invitation::InvitationInputDTO;
 use crate::models::token::Token;
 use crate::models::user::{LoginDTO, RegisterDTO};
-use crate::repository::invitation_repository;
+use crate::repository::{folder_repository, invitation_repository};
 use crate::{errors::db_error::DbError, repository::user_repository};
 use actix_web::web::Data;
 use actix_web::{
@@ -14,6 +14,7 @@ use actix_web::{
 };
 use deadpool_postgres::{Client, Pool};
 use log::info;
+use uuid::Uuid;
 
 const ENDPOINT: &str = "/connection";
 
@@ -132,18 +133,27 @@ async fn post_invitation(
 async fn register(
     register_json: web::Json<RegisterDTO>,
     ThinData(db_pool): ThinData<Pool>,
-    guid: web::Path<String>,
+    guid: web::Path<Uuid>,
 ) -> Result<HttpResponse, AppRequestError> {
     info!("/POST register");
 
-    let register_dto: RegisterDTO = register_json.into_inner();
     let db_client: Client = db_pool
         .get()
         .await
         .map_err(DbError::PoolError)
         .map_err(AppRequestError::InternalDbError)?;
 
+    let guid: Uuid = guid.into_inner();
+    invitation_repository::check_guid(&db_client, guid)
+        .await
+        .map_err(AppRequestError::InternalDbError)?;
+
+    let register_dto: RegisterDTO = register_json.into_inner();
     let user_id = user_repository::register(&db_client, register_dto)
+        .await
+        .map_err(AppRequestError::InternalDbError)?;
+
+    invitation_repository::update_user_id(&db_client, user_id, guid)
         .await
         .map_err(AppRequestError::InternalDbError)?;
 

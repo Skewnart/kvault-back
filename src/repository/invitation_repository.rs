@@ -3,6 +3,7 @@ use crate::models::invitation::{InvitationDTO, InvitationInputDTO};
 use deadpool_postgres::Client;
 use tokio_pg_mapper::FromTokioPostgresRow;
 use uuid::Uuid;
+use crate::models::folder::UpdateFolderInputDTO;
 
 pub async fn get_all(client: &Client) -> Result<Vec<InvitationDTO>, DbError> {
     let _stmt = include_str!("sql/invitations/get_all.sql");
@@ -39,4 +40,43 @@ pub async fn insert(
         .collect::<Vec<Uuid>>()
         .pop()
         .ok_or(DbError::NotFound)
+}
+
+pub async fn update_user_id(
+    client: &Client,
+    user_id: i64,
+    guid: Uuid,
+) -> Result<(), DbError> {
+    let _stmt = include_str!("./sql/invitations/update_user_id.sql");
+    let _stmt = client.prepare(_stmt).await?;
+
+    client
+        .query(&_stmt, &[&user_id, &guid])
+        .await?
+        .iter()
+        .map(|row| row.get(0))
+        .collect::<Vec<Uuid>>()
+        .pop()
+        .ok_or(DbError::NotFound)?;
+
+    Ok(())
+}
+
+pub async fn check_guid(
+    client: &Client,
+    guid: Uuid,
+) -> Result<(), DbError> {
+    let _stmt = include_str!("./sql/invitations/check_guid.sql");
+    let _stmt = client.prepare(_stmt).await?;
+
+    client
+        .query(&_stmt, &[&guid])
+        .await?
+        .iter()
+        .map(|row| row.get(0))
+        .collect::<Vec<Uuid>>()
+        .pop()
+        .ok_or(DbError::NotFound)?;
+
+    Ok(())
 }
