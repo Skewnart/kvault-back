@@ -3,7 +3,6 @@ use crate::models::invitation::{InvitationDTO, InvitationInputDTO};
 use deadpool_postgres::Client;
 use tokio_pg_mapper::FromTokioPostgresRow;
 use uuid::Uuid;
-use crate::models::folder::UpdateFolderInputDTO;
 
 pub async fn get_all(client: &Client) -> Result<Vec<InvitationDTO>, DbError> {
     let _stmt = include_str!("sql/invitations/get_all.sql");
@@ -42,11 +41,7 @@ pub async fn insert(
         .ok_or(DbError::NotFound)
 }
 
-pub async fn update_user_id(
-    client: &Client,
-    user_id: i64,
-    guid: Uuid,
-) -> Result<(), DbError> {
+pub async fn update_user_id(client: &Client, user_id: i64, guid: Uuid) -> Result<(), DbError> {
     let _stmt = include_str!("./sql/invitations/update_user_id.sql");
     let _stmt = client.prepare(_stmt).await?;
 
@@ -62,10 +57,7 @@ pub async fn update_user_id(
     Ok(())
 }
 
-pub async fn check_guid(
-    client: &Client,
-    guid: Uuid,
-) -> Result<(), DbError> {
+pub async fn check_guid(client: &Client, guid: Uuid) -> Result<(), DbError> {
     let _stmt = include_str!("./sql/invitations/check_guid.sql");
     let _stmt = client.prepare(_stmt).await?;
 

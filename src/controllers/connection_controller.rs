@@ -5,7 +5,7 @@ use crate::models::config::jwt_config::JwtConfig;
 use crate::models::invitation::InvitationInputDTO;
 use crate::models::token::Token;
 use crate::models::user::{LoginDTO, RegisterDTO};
-use crate::repository::{folder_repository, invitation_repository};
+use crate::repository::invitation_repository;
 use crate::{errors::db_error::DbError, repository::user_repository};
 use actix_web::web::Data;
 use actix_web::{
