@@ -1,4 +1,5 @@
 use crate::errors::app_request_error::AppRequestError;
+use crate::mapper::invitation_mapper::invitation_to_invitation_output;
 use crate::middlewares::authentication_middleware::AuthenticationMiddleware;
 use crate::models::config::jwt_config::JwtConfig;
 use crate::models::invitation::InvitationInputDTO;
@@ -87,9 +88,12 @@ async fn get_invitations(
         .map_err(DbError::PoolError)
         .map_err(AppRequestError::InternalDbError)?;
 
-    let invitations = invitation_repository::get_all(&db_client)
+    let invitations: Vec<_> = invitation_repository::get_all(&db_client)
         .await
-        .map_err(AppRequestError::InternalDbError)?;
+        .map_err(AppRequestError::InternalDbError)?
+        .into_iter()
+        .map(invitation_to_invitation_output)
+        .collect();
 
     let invitations =
         serde_json::to_string(&invitations).map_err(AppRequestError::InternalSerializationError)?;

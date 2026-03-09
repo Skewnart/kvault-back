@@ -6,9 +6,17 @@ use uuid::Uuid;
 
 #[derive(Deserialize, PostgresMapper, Serialize)]
 #[pg_mapper(table = "invitations")]
-pub struct InvitationOutputDTO {
+pub struct InvitationDTO {
     pub guid: Uuid,
     pub ends_at: SystemTime,
+    pub is_active: bool,
+    pub invited_username: Option<String>,
+}
+
+#[derive(Serialize)]
+pub struct InvitationOutputDTO {
+    pub guid: Uuid,
+    pub ends_at: u64,
     pub is_active: bool,
     pub invited_username: Option<String>,
 }

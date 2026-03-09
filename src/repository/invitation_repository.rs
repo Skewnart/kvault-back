@@ -1,10 +1,10 @@
 use crate::errors::db_error::DbError;
-use crate::models::invitation::{InvitationInputDTO, InvitationOutputDTO};
+use crate::models::invitation::{InvitationDTO, InvitationInputDTO};
 use deadpool_postgres::Client;
 use tokio_pg_mapper::FromTokioPostgresRow;
 use uuid::Uuid;
 
-pub async fn get_all(client: &Client) -> Result<Vec<InvitationOutputDTO>, DbError> {
+pub async fn get_all(client: &Client) -> Result<Vec<InvitationDTO>, DbError> {
     let _stmt = include_str!("sql/invitations/get_all.sql");
     let _stmt = client.prepare(_stmt).await?;
 
@@ -12,8 +12,8 @@ pub async fn get_all(client: &Client) -> Result<Vec<InvitationOutputDTO>, DbErro
         .query(&_stmt, &[])
         .await?
         .iter()
-        .map(|row| InvitationOutputDTO::from_row_ref(row).unwrap())
-        .collect::<Vec<InvitationOutputDTO>>();
+        .map(|row| InvitationDTO::from_row_ref(row).unwrap())
+        .collect::<Vec<InvitationDTO>>();
 
     Ok(invitations)
 }
