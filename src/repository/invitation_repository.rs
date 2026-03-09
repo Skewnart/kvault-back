@@ -1,7 +1,8 @@
 use crate::errors::db_error::DbError;
-use crate::models::invitation::InvitationOutputDTO;
+use crate::models::invitation::{InvitationInputDTO, InvitationOutputDTO};
 use deadpool_postgres::Client;
 use tokio_pg_mapper::FromTokioPostgresRow;
+use uuid::Uuid;
 
 pub async fn get_all(client: &Client) -> Result<Vec<InvitationOutputDTO>, DbError> {
     let _stmt = include_str!("sql/invitations/get_all.sql");
@@ -15,4 +16,27 @@ pub async fn get_all(client: &Client) -> Result<Vec<InvitationOutputDTO>, DbErro
         .collect::<Vec<InvitationOutputDTO>>();
 
     Ok(invitations)
+}
+
+pub async fn insert(
+    client: &Client,
+    insert_folder_dto: &InvitationInputDTO,
+) -> Result<Uuid, DbError> {
+    let _stmt = include_str!("./sql/invitations/insert.sql");
+    let _stmt = client.prepare(_stmt).await?;
+
+    client
+        .query(
+            &_stmt,
+            &[
+                &insert_folder_dto.duration_times.to_string(),
+                &insert_folder_dto.duration_unit.to_string(),
+            ],
+        )
+        .await?
+        .iter()
+        .map(|row| row.get(0))
+        .collect::<Vec<Uuid>>()
+        .pop()
+        .ok_or(DbError::NotFound)
 }

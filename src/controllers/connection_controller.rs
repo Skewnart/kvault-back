@@ -1,6 +1,7 @@
 use crate::errors::app_request_error::AppRequestError;
 use crate::middlewares::authentication_middleware::AuthenticationMiddleware;
 use crate::models::config::jwt_config::JwtConfig;
+use crate::models::invitation::InvitationInputDTO;
 use crate::models::token::Token;
 use crate::models::user::{LoginDTO, RegisterDTO};
 use crate::repository::invitation_repository;
@@ -33,7 +34,8 @@ pub fn configure(cfg: &mut web::ServiceConfig) {
                     .service(
                         web::resource(ENDPOINT_REGISTER_INVITATIONS)
                             .wrap(AuthenticationMiddleware)
-                            .route(web::get().to(get_invitations)), // .route(web::post().to(post_invitation)),
+                            .route(web::get().to(get_invitations))
+                            .route(web::post().to(post_invitation)),
                     )
                     .service(web::resource("{guid}").route(web::post().to(register))),
             ),
@@ -93,6 +95,34 @@ async fn get_invitations(
         serde_json::to_string(&invitations).map_err(AppRequestError::InternalSerializationError)?;
 
     Ok(HttpResponse::Ok().body(invitations))
+}
+
+async fn post_invitation(
+    ThinData(db_pool): ThinData<Pool>,
+    token: Token,
+    invitation_input: web::Json<InvitationInputDTO>,
+) -> Result<HttpResponse, AppRequestError> {
+    info!("/GET register/invitations");
+
+    if !token.infos.user_type.is_admin() {
+        return Err(AppRequestError::Forbidden(String::from(
+            "User is not admin",
+        )));
+    }
+
+    let db_client: Client = db_pool
+        .get()
+        .await
+        .map_err(DbError::PoolError)
+        .map_err(AppRequestError::InternalDbError)?;
+
+    let invitation_input = invitation_input.into_inner();
+
+    let invitation_uuid = invitation_repository::insert(&db_client, &invitation_input)
+        .await
+        .map_err(AppRequestError::InternalDbError)?;
+
+    Ok(HttpResponse::Created().body(invitation_uuid.to_string()))
 }
 
 async fn register(

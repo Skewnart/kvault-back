@@ -6,12 +6,19 @@ meta {
 
 post {
   url: {{baseurlapi}}{{prefixapi}}/connection/register/invitations
-  body: none
+  body: json
   auth: bearer
 }
 
 auth:bearer {
   token: {{token}}
+}
+
+body:json {
+  {
+    "duration_times": 12,
+    "duration_unit": "DAYS"
+  }
 }
 
 settings {
