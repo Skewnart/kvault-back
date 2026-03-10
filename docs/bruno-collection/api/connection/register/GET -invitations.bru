@@ -1,0 +1,20 @@
+meta {
+  name: GET /invitations
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseurlapi}}{{prefixapi}}/connection/register/invitations
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

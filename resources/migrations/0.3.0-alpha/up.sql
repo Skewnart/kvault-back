@@ -1,2 +1,5 @@
-ALTER TABLE users ADD password TEXT NOT NULL;
+ALTER TABLE users ADD password TEXT;
+UPDATE users SET password = '';
+ALTER TABLE users ALTER COLUMN password SET NOT NULL;
+
 ALTER TABLE users ALTER COLUMN email DROP NOT NULL;

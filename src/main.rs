@@ -1,5 +1,6 @@
 mod controllers;
 mod errors;
+mod mapper;
 mod middlewares;
 mod models;
 mod repository;
