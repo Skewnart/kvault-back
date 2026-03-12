@@ -21,20 +21,20 @@ pub struct RegisterDTO {
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub enum UserType {
-    USER,
-    ADMIN,
+    User,
+    Admin,
 }
 
 impl UserType {
     pub fn from(user: String) -> Option<Self> {
         match user.as_str() {
-            "USER" => Some(UserType::USER),
-            "ADMIN" => Some(UserType::ADMIN),
+            "USER" => Some(UserType::User),
+            "ADMIN" => Some(UserType::Admin),
             _ => None,
         }
     }
 
     pub fn is_admin(&self) -> bool {
-        self == &UserType::ADMIN
+        self == &UserType::Admin
     }
 }

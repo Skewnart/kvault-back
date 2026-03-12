@@ -50,7 +50,7 @@ pub async fn login(
         .map_err(AppRequestError::InternalDbError)?;
 
     if login_dto.password.is_empty() {
-        return Ok((0, UserType::USER));
+        return Ok((0, UserType::User));
     }
 
     let user_type = UserType::from(row.get(1)).ok_or(AppRequestError::InternalTokenError(
