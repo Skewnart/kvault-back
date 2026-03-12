@@ -1,0 +1,22 @@
+meta {
+  name: POST /
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseurlapi}}{{prefixapi}}/envelope
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "envelope": {"test":"aze"}
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
