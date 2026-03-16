@@ -3,7 +3,7 @@ use crate::models::envelope::EnvelopeDTO;
 use deadpool_postgres::Client;
 
 pub async fn get_by_user_id(client: &Client, user_id: i64) -> Result<EnvelopeDTO, DbError> {
-    let _stmt = include_str!("sql/envelope/get_by_user_id.sql");
+    let _stmt = include_str!("sql/envelope/get.sql");
     let _stmt = client.prepare(_stmt).await?;
 
     let envelope = client

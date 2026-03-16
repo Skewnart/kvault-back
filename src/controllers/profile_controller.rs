@@ -30,7 +30,7 @@ async fn get(
         .await
         .map_err(DbError::from)
         .map_err(AppRequestError::InternalDbError)?;
-    let user = user_repository::get_by_id(&client, token.sub)
+    let user = user_repository::get_profile(&client, token.sub)
         .await
         .map_err(AppRequestError::InternalDbError)?;
 

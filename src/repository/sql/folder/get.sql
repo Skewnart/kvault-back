@@ -1,4 +1,4 @@
-SELECT name
+SELECT enc_entries
 FROM folders
 WHERE id = $1
     AND user_id = $2;

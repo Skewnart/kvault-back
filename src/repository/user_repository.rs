@@ -1,5 +1,6 @@
 use crate::errors::app_request_error::AppRequestError;
 use crate::errors::db_error::DbError;
+use crate::models::envelope::EncStringDTO;
 use crate::models::user::{LoginDTO, RegisterDTO};
 use crate::models::user::{UserProfileDTO, UserType};
 use argon2::password_hash::SaltString;
@@ -9,8 +10,8 @@ use deadpool_postgres::Client;
 use tokio_pg_mapper::FromTokioPostgresRow;
 use tokio_postgres::Row;
 
-pub async fn get_by_id(client: &Client, user_id: i64) -> Result<UserProfileDTO, DbError> {
-    let _stmt = include_str!("sql/users/get_by_id.sql");
+pub async fn get_profile(client: &Client, user_id: i64) -> Result<UserProfileDTO, DbError> {
+    let _stmt = include_str!("sql/users/get_profile.sql");
     let _stmt = client.prepare(_stmt).await?;
 
     let user = client
@@ -23,6 +24,44 @@ pub async fn get_by_id(client: &Client, user_id: i64) -> Result<UserProfileDTO, 
         .ok_or(DbError::NotFound)?;
 
     Ok(user)
+}
+
+pub async fn get_enc_folders_by_id(client: &Client, user_id: i64) -> Result<EncStringDTO, DbError> {
+    let _stmt = include_str!("sql/users/get_enc_folders.sql");
+    let _stmt = client.prepare(_stmt).await?;
+
+    let enc_folders = client
+        .query(&_stmt, &[&user_id])
+        .await?
+        .iter()
+        .map(|row| EncStringDTO {
+            enc_string: row.get(0),
+        })
+        .collect::<Vec<EncStringDTO>>()
+        .pop()
+        .ok_or(DbError::NotFound)?;
+
+    Ok(enc_folders)
+}
+
+pub async fn update_enc_folders_by_id(
+    client: &Client,
+    enc_string_dto: EncStringDTO,
+    user_id: i64,
+) -> Result<(), DbError> {
+    let _stmt = include_str!("sql/users/update_enc_folders.sql");
+    let _stmt = client.prepare(_stmt).await?;
+
+    client
+        .query(&_stmt, &[&enc_string_dto.enc_string, &user_id])
+        .await?
+        .iter()
+        .map(|row| row.get(0))
+        .collect::<Vec<i64>>()
+        .pop()
+        .ok_or(DbError::NotFound)?;
+
+    Ok(())
 }
 
 pub async fn login(
