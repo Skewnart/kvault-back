@@ -122,7 +122,15 @@ pub async fn register(client: &Client, register_dto: RegisterDTO) -> Result<i64,
         .to_string();
 
     client
-        .query(&_stmt, &[&register_dto.username, &hashed_password])
+        .query(
+            &_stmt,
+            &[
+                &register_dto.username,
+                &hashed_password,
+                &register_dto.envelope,
+                &register_dto.enc_folders,
+            ],
+        )
         .await?
         .iter()
         .map(|row| row.get(0))

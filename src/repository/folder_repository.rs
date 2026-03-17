@@ -41,12 +41,16 @@ pub async fn update(
     Ok(())
 }
 
-pub async fn insert(client: &Client, user_id: i64) -> Result<i64, DbError> {
+pub async fn insert(
+    client: &Client,
+    user_id: i64,
+    enc_entries_json: &EncStringDTO,
+) -> Result<i64, DbError> {
     let _stmt = include_str!("./sql/folder/insert.sql");
     let _stmt = client.prepare(_stmt).await?;
 
     client
-        .query(&_stmt, &[&user_id])
+        .query(&_stmt, &[&user_id, &enc_entries_json.enc_string])
         .await?
         .iter()
         .map(|row| row.get(0))

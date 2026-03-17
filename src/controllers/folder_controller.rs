@@ -77,6 +77,7 @@ async fn set_all(
 async fn post_one(
     token: Token,
     ThinData(db_pool): ThinData<Pool>,
+    enc_entries_json: web::Json<EncStringDTO>,
 ) -> Result<HttpResponse, AppRequestError> {
     info!("/POST folder/new");
 
@@ -86,7 +87,9 @@ async fn post_one(
         .map_err(DbError::PoolError)
         .map_err(AppRequestError::InternalDbError)?;
 
-    let folder_id = folder_repository::insert(&db_client, token.sub)
+    let enc_entries_json = enc_entries_json.into_inner();
+
+    let folder_id = folder_repository::insert(&db_client, token.sub, &enc_entries_json)
         .await
         .map_err(AppRequestError::InternalDbError)?;
 

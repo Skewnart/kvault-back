@@ -19,19 +19,3 @@ pub async fn get_by_user_id(client: &Client, user_id: i64) -> Result<EnvelopeDTO
 
     Ok(envelope_dto)
 }
-
-pub async fn update(client: &Client, envelope: EnvelopeDTO, user_id: i64) -> Result<(), DbError> {
-    let _stmt = include_str!("./sql/envelope/update.sql");
-    let _stmt = client.prepare(_stmt).await?;
-
-    client
-        .query(&_stmt, &[&envelope.envelope, &user_id])
-        .await?
-        .iter()
-        .map(|row| row.get(0))
-        .collect::<Vec<i64>>()
-        .pop()
-        .ok_or(DbError::NotFound)?;
-
-    Ok(())
-}

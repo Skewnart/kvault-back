@@ -17,6 +17,8 @@ pub struct LoginDTO {
 pub struct RegisterDTO {
     pub username: String,
     pub password: String,
+    pub envelope: serde_json::Value,
+    pub enc_folders: String,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
