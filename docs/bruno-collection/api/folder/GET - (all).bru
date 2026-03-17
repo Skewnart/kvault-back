@@ -1,11 +1,11 @@
 meta {
-  name: GET /password
+  name: GET / (all)
   type: http
-  seq: 2
+  seq: 1
 }
 
 get {
-  url: {{baseurlapi}}{{prefixapi}}/entry/{{id}}/password
+  url: {{baseurlapi}}{{prefixapi}}/folder
   body: none
   auth: inherit
 }
