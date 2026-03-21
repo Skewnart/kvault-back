@@ -1,10 +1,6 @@
-INSERT INTO entries("name", description, password, is_favorite, folder_id, user_id)
+INSERT INTO entries(enc_datas, user_id)
 VALUES (
            $1,
-           $2,
-           $3,
-           $4,
-           (SELECT id FROM folders  WHERE id = $5 AND user_id = $6),
-           $6
+           $2
        )
     RETURNING id;

@@ -1,5 +1,6 @@
 pub mod connection_controller;
 pub mod entry_controller;
+pub mod envelope_controller;
 pub mod folder_controller;
 pub mod infos_controller;
 pub mod profile_controller;

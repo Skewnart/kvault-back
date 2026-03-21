@@ -1,18 +1,18 @@
 meta {
-  name: PUT /move
+  name: POST /new
   type: http
-  seq: 4
+  seq: 3
 }
 
-put {
-  url: {{baseurlapi}}{{prefixapi}}/entry/{{id}}/move
+post {
+  url: {{baseurlapi}}{{prefixapi}}/folder/new
   body: json
   auth: inherit
 }
 
 body:json {
   {
-    "folder_id": 1
+    "enc_string": "#ENCODED"
   }
 }
 

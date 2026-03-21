@@ -17,24 +17,26 @@ pub struct LoginDTO {
 pub struct RegisterDTO {
     pub username: String,
     pub password: String,
+    pub envelope: serde_json::Value,
+    pub enc_folders: String,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub enum UserType {
-    USER,
-    ADMIN,
+    User,
+    Admin,
 }
 
 impl UserType {
     pub fn from(user: String) -> Option<Self> {
         match user.as_str() {
-            "USER" => Some(UserType::USER),
-            "ADMIN" => Some(UserType::ADMIN),
+            "USER" => Some(UserType::User),
+            "ADMIN" => Some(UserType::Admin),
             _ => None,
         }
     }
 
     pub fn is_admin(&self) -> bool {
-        self == &UserType::ADMIN
+        self == &UserType::Admin
     }
 }

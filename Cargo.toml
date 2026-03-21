@@ -1,6 +1,6 @@
 [package]
 name = "kvault"
-version = "0.5.0-alpha"
+version = "0.5.1-alpha"
 edition = "2024"
 
 [dependencies]
@@ -13,11 +13,11 @@ deadpool-postgres = { version = "0.14", features = ["serde"] }
 derive_more = { version = "2", features = ["display", "error", "from"] }
 tokio-pg-mapper = "0.2"
 tokio-pg-mapper-derive = "0.2"
-tokio-postgres = { version = "0.7", features = ["with-uuid-1"] }
+tokio-postgres = { version = "0.7", features = ["with-uuid-1", "with-serde_json-1"] }
 log = "0.4"
 env_logger = "0.11"
 futures-util = "0.3"
-jsonwebtoken = { version = "10.2", features = ["rust_crypto"] }
+jsonwebtoken = { version = "10.3.0", features = ["rust_crypto"] }
 futures = "0.3.31"
 serde_json = "1.0.143"
 chrono = "0.4.42"
