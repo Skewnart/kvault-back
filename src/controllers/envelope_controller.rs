@@ -1,7 +1,8 @@
 use crate::errors::app_request_error::AppRequestError;
+use crate::errors::db_error::DbError;
 use crate::middlewares::authentication_middleware::AuthenticationMiddleware;
 use crate::models::token::Token;
-use crate::{errors::db_error::DbError, repository::user_repository};
+use crate::repository::envelope_repository;
 use actix_web::{
     HttpResponse,
     web::{self, ThinData},
@@ -9,7 +10,7 @@ use actix_web::{
 use deadpool_postgres::{Client, Pool};
 use log::info;
 
-const ENDPOINT: &str = "/profile";
+const ENDPOINT: &str = "/envelope";
 
 pub fn configure(cfg: &mut web::ServiceConfig) {
     cfg.service(
@@ -23,16 +24,16 @@ async fn get(
     ThinData(db_pool): ThinData<Pool>,
     token: Token,
 ) -> Result<HttpResponse, AppRequestError> {
-    info!("/GET profile");
+    info!("/GET envelope");
 
     let client: Client = db_pool
         .get()
         .await
         .map_err(DbError::from)
         .map_err(AppRequestError::InternalDbError)?;
-    let user = user_repository::get_profile(&client, token.sub)
+    let envelope = envelope_repository::get_by_user_id(&client, token.infos.user_id)
         .await
         .map_err(AppRequestError::InternalDbError)?;
 
-    Ok(HttpResponse::Ok().json(user))
+    Ok(HttpResponse::Ok().json(envelope))
 }
