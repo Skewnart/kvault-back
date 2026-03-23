@@ -1,8 +1,8 @@
 use crate::errors::db_error::DbError;
-use crate::models::envelope::EncStringDTO;
+use crate::models::envelope::EncodedDataDTO;
 use deadpool_postgres::Client;
 
-pub async fn get(client: &Client, id: i64, user_id: i64) -> Result<EncStringDTO, DbError> {
+pub async fn get(client: &Client, id: i64, user_id: i64) -> Result<EncodedDataDTO, DbError> {
     let _stmt = include_str!("sql/entry/get.sql");
     let _stmt = client.prepare(_stmt).await?;
 
@@ -10,10 +10,10 @@ pub async fn get(client: &Client, id: i64, user_id: i64) -> Result<EncStringDTO,
         .query(&_stmt, &[&id, &user_id])
         .await?
         .iter()
-        .map(|row| EncStringDTO {
-            enc_string: row.get(0),
+        .map(|row| EncodedDataDTO {
+            enc_data: row.get(0),
         })
-        .collect::<Vec<EncStringDTO>>()
+        .collect::<Vec<EncodedDataDTO>>()
         .pop()
         .ok_or(DbError::NotFound)?;
 
@@ -22,14 +22,14 @@ pub async fn get(client: &Client, id: i64, user_id: i64) -> Result<EncStringDTO,
 
 pub async fn insert(
     client: &Client,
-    enc_string_dto: EncStringDTO,
+    enc_string_dto: EncodedDataDTO,
     user_id: i64,
 ) -> Result<i64, DbError> {
     let _stmt = include_str!("./sql/entry/insert.sql");
     let _stmt = client.prepare(_stmt).await?;
 
     client
-        .query(&_stmt, &[&enc_string_dto.enc_string, &user_id])
+        .query(&_stmt, &[&enc_string_dto.enc_data, &user_id])
         .await?
         .iter()
         .map(|row| row.get(0))
@@ -40,7 +40,7 @@ pub async fn insert(
 
 pub async fn update(
     client: &Client,
-    update_entry_dto: EncStringDTO,
+    update_entry_dto: EncodedDataDTO,
     id: i64,
     user_id: i64,
 ) -> Result<(), DbError> {
@@ -48,7 +48,7 @@ pub async fn update(
     let _stmt = client.prepare(_stmt).await?;
 
     client
-        .query(&_stmt, &[&update_entry_dto.enc_string, &id, &user_id])
+        .query(&_stmt, &[&update_entry_dto.enc_data, &id, &user_id])
         .await?
         .iter()
         .map(|row| row.get(0))

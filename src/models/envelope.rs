@@ -6,6 +6,6 @@ pub struct EnvelopeDTO {
 }
 
 #[derive(Deserialize, Serialize)]
-pub struct EncStringDTO {
-    pub enc_string: String,
+pub struct EncodedDataDTO {
+    pub enc_data: serde_json::Value,
 }
