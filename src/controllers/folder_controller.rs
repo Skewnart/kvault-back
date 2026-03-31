@@ -2,7 +2,7 @@ use crate::errors::app_request_error::AppRequestError;
 use crate::errors::db_error::DbError;
 use crate::middlewares::authentication_middleware::AuthenticationMiddleware;
 
-use crate::models::envelope::EncStringDTO;
+use crate::models::envelope::EncodedDataDTO;
 use crate::models::token::Token;
 use crate::repository::{folder_repository, user_repository};
 use actix_web::{
@@ -55,7 +55,7 @@ async fn get_all(
 async fn set_all(
     ThinData(db_pool): ThinData<Pool>,
     token: Token,
-    enc_string_json: web::Json<EncStringDTO>,
+    enc_string_json: web::Json<EncodedDataDTO>,
 ) -> Result<HttpResponse, AppRequestError> {
     info!("/POST folder");
 
@@ -77,7 +77,7 @@ async fn set_all(
 async fn post_one(
     token: Token,
     ThinData(db_pool): ThinData<Pool>,
-    enc_entries_json: web::Json<EncStringDTO>,
+    enc_entries_json: web::Json<EncodedDataDTO>,
 ) -> Result<HttpResponse, AppRequestError> {
     info!("/POST folder/new");
 
@@ -120,7 +120,7 @@ async fn get_one(
 async fn put_one(
     ThinData(db_pool): ThinData<Pool>,
     token: Token,
-    enc_string_json: web::Json<EncStringDTO>,
+    enc_string_json: web::Json<EncodedDataDTO>,
     id: web::Path<i64>,
 ) -> Result<HttpResponse, AppRequestError> {
     info!("/PUT folder/{id}");
