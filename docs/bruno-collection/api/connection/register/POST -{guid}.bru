@@ -12,11 +12,15 @@ post {
 
 body:json {
   {
-    "username": "skewnart",
+    "username": "user2",
     "password": "test",
-    "envelope": {},
-    "enc_folders": "#ENCODED"
+    "envelope": {"envelope":"env"},
+    "enc_folders": {"enc":""}
   }
+}
+
+script:post-response {
+  bru.setVar("token",res.body)
 }
 
 settings {

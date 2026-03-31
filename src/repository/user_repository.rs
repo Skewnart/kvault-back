@@ -1,6 +1,6 @@
 use crate::errors::app_request_error::AppRequestError;
 use crate::errors::db_error::DbError;
-use crate::models::envelope::EncStringDTO;
+use crate::models::envelope::EncodedDataDTO;
 use crate::models::user::{LoginDTO, RegisterDTO};
 use crate::models::user::{UserProfileDTO, UserType};
 use argon2::password_hash::SaltString;
@@ -26,7 +26,10 @@ pub async fn get_profile(client: &Client, user_id: i64) -> Result<UserProfileDTO
     Ok(user)
 }
 
-pub async fn get_enc_folders_by_id(client: &Client, user_id: i64) -> Result<EncStringDTO, DbError> {
+pub async fn get_enc_folders_by_id(
+    client: &Client,
+    user_id: i64,
+) -> Result<EncodedDataDTO, DbError> {
     let _stmt = include_str!("sql/users/get_enc_folders.sql");
     let _stmt = client.prepare(_stmt).await?;
 
@@ -34,10 +37,10 @@ pub async fn get_enc_folders_by_id(client: &Client, user_id: i64) -> Result<EncS
         .query(&_stmt, &[&user_id])
         .await?
         .iter()
-        .map(|row| EncStringDTO {
-            enc_string: row.get(0),
+        .map(|row| EncodedDataDTO {
+            enc_data: row.get(0),
         })
-        .collect::<Vec<EncStringDTO>>()
+        .collect::<Vec<EncodedDataDTO>>()
         .pop()
         .ok_or(DbError::NotFound)?;
 
@@ -46,14 +49,14 @@ pub async fn get_enc_folders_by_id(client: &Client, user_id: i64) -> Result<EncS
 
 pub async fn update_enc_folders_by_id(
     client: &Client,
-    enc_string_dto: EncStringDTO,
+    enc_string_dto: EncodedDataDTO,
     user_id: i64,
 ) -> Result<(), DbError> {
     let _stmt = include_str!("sql/users/update_enc_folders.sql");
     let _stmt = client.prepare(_stmt).await?;
 
     client
-        .query(&_stmt, &[&enc_string_dto.enc_string, &user_id])
+        .query(&_stmt, &[&enc_string_dto.enc_data, &user_id])
         .await?
         .iter()
         .map(|row| row.get(0))

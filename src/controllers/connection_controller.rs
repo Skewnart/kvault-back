@@ -4,7 +4,7 @@ use crate::middlewares::authentication_middleware::AuthenticationMiddleware;
 use crate::models::config::jwt_config::JwtConfig;
 use crate::models::invitation::InvitationInputDTO;
 use crate::models::token::Token;
-use crate::models::user::{LoginDTO, RegisterDTO};
+use crate::models::user::{LoginDTO, RegisterDTO, UserType};
 use crate::repository::invitation_repository;
 use crate::{errors::db_error::DbError, repository::user_repository};
 use actix_web::web::Data;
@@ -134,6 +134,7 @@ async fn register(
     register_json: web::Json<RegisterDTO>,
     ThinData(db_pool): ThinData<Pool>,
     guid: web::Path<Uuid>,
+    jwt_config: Data<JwtConfig>,
 ) -> Result<HttpResponse, AppRequestError> {
     info!("/POST register");
 
@@ -157,5 +158,10 @@ async fn register(
         .await
         .map_err(AppRequestError::InternalDbError)?;
 
-    Ok(HttpResponse::Created().body(user_id.to_string()))
+    let token = Token::generate(user_id, UserType::User, jwt_config.ttl);
+    let encoded_token = token
+        .encode(jwt_config.sk.clone())
+        .map_err(|_err| AppRequestError::InternalTokenError(_err.to_string()))?;
+
+    Ok(HttpResponse::Created().body(encoded_token))
 }
