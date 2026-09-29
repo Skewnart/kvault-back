@@ -74,3 +74,19 @@ pub async fn delete(client: &Client, id: i64, user_id: i64) -> Result<(), DbErro
 
     Ok(())
 }
+
+pub async fn delete_some(client: &Client, ids: Vec<i64>, user_id: i64) -> Result<(), DbError> {
+    let _stmt = include_str!("./sql/entry/delete_some.sql");
+    let _stmt = client.prepare(_stmt).await?;
+
+    client
+        .query(&_stmt, &[&ids, &user_id])
+        .await?
+        .iter()
+        .map(|row| row.get(0))
+        .collect::<Vec<i64>>()
+        .pop()
+        .ok_or(DbError::NotFound)?;
+
+    Ok(())
+}

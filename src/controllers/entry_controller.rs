@@ -17,7 +17,10 @@ pub fn configure(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope(ENDPOINT)
             .wrap(AuthenticationMiddleware)
-            .service(web::resource("").route(web::post().to(post_one)))
+            .service(web::resource("")
+                .route(web::post().to(post_one))
+                .route(web::delete().to(delete_some))
+            )
             .service(
                 web::scope("/{id}").service(
                     web::resource("")
@@ -109,6 +112,27 @@ async fn delete_one(
 
     let id = id.into_inner();
     entry_repository::delete(&client, id, token.sub)
+        .await
+        .map_err(AppRequestError::InternalDbError)?;
+
+    Ok(HttpResponse::NoContent().finish())
+}
+
+async fn delete_some(
+    ids_array_json: web::Json<Vec<i64>>,
+    token: Token,
+    ThinData(db_pool): ThinData<Pool>,
+) -> Result<HttpResponse, AppRequestError> {
+    info!("/DELETE entry");
+
+    let ids_array: Vec<i64> = ids_array_json.into_inner();
+    let db_client: Client = db_pool
+        .get()
+        .await
+        .map_err(DbError::PoolError)
+        .map_err(AppRequestError::InternalDbError)?;
+
+    entry_repository::delete_some(&db_client, ids_array, token.sub)
         .await
         .map_err(AppRequestError::InternalDbError)?;
 

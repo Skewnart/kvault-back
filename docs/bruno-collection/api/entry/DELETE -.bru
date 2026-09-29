@@ -1,0 +1,20 @@
+meta {
+  name: DELETE /
+  type: http
+  seq: 2
+}
+
+delete {
+  url: {{baseurlapi}}{{prefixapi}}/entry
+  body: json
+  auth: inherit
+}
+
+body:json {
+  [28, 29]
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
