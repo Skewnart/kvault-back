@@ -1,0 +1,1 @@
+ALTER TABLE entries ADD folder_id bigserial NOT NULL;
