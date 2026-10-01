@@ -95,6 +95,17 @@ pub async fn login(
         return Ok((0, UserType::User));
     }
 
+    let user_id : i64 = row.get(0);
+    let attempts = get_password_attempts(client, user_id).await
+        .map_err(AppRequestError::InternalDbError)?;
+    println!("attempts: {}", attempts);
+
+    if attempts > 3 {
+        Err(AppRequestError::Unauthorized(
+            "Utilisateur bloqué.".to_string()
+        ))?;
+    }
+
     let user_type = UserType::from(row.get(1)).ok_or(AppRequestError::InternalTokenError(
         String::from("Type user inconnu"),
     ))?;
@@ -111,7 +122,10 @@ pub async fn login(
         ))?;
     }
 
-    Ok((row.get(0), user_type))
+    reset_password_attempts(client, user_id).await
+        .map_err(AppRequestError::InternalDbError)?;
+
+    Ok((user_id, user_type))
 }
 
 pub async fn register(client: &Client, register_dto: RegisterDTO) -> Result<i64, DbError> {
@@ -140,4 +154,39 @@ pub async fn register(client: &Client, register_dto: RegisterDTO) -> Result<i64,
         .collect::<Vec<i64>>()
         .pop()
         .ok_or(DbError::NotFound)
+}
+
+async fn get_password_attempts(client: &Client, user_id: i64) -> Result<i32, DbError> {
+    let _stmt = include_str!("./sql/users/increase_password_failed_attempts.sql");
+    let _stmt = client.prepare(_stmt).await?;
+
+    client
+        .query(
+            &_stmt,
+            &[
+                &user_id
+            ],
+        )
+        .await?
+        .iter()
+        .map(|row| row.get(0))
+        .collect::<Vec<i32>>()
+        .pop()
+        .ok_or(DbError::NotFound)
+}
+
+async fn reset_password_attempts(client: &Client, user_id: i64) -> Result<(), DbError> {
+    let _stmt = include_str!("sql/users/reset_password_failed_attempts.sql");
+    let _stmt = client.prepare(_stmt).await?;
+
+    client
+        .query(&_stmt, &[&user_id])
+        .await?
+        .iter()
+        .map(|row| row.get(0))
+        .collect::<Vec<i32>>()
+        .pop()
+        .ok_or(DbError::NotFound)?;
+
+    Ok(())
 }
