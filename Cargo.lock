@@ -1345,7 +1345,7 @@ dependencies = [
 
 [[package]]
 name = "kvault"
-version = "0.7.0-alpha"
+version = "0.7.1-alpha"
 dependencies = [
  "actix-cors",
  "actix-web",
